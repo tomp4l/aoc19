@@ -1,0 +1,23 @@
+{
+  "name": "aoc19",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "BuckleScript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bs-platform": "^5.2.1"
+  },
+  "dependencies": {
+    "bs-abstract": "^0.18.0",
+    "bs-node": "github:reasonml-community/bs-node",
+    "reason-future": "^2.5.0",
+    "relude": "^0.38.0"
+  }
+}
