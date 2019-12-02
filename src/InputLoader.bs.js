@@ -4,7 +4,10 @@
 var Fs = require("fs");
 var Curry = require("bs-platform/lib/js/curry.js");
 var Future = require("reason-future/src/Future.bs.js");
+var Caml_format = require("bs-platform/lib/js/caml_format.js");
+var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
+var Relude_Function = require("relude/src/Relude_Function.bs.js");
 
 function loadDay(number) {
   var filename = __dirname + ("/input/day" + (String(number) + ".txt"));
@@ -16,12 +19,43 @@ function loadDay(number) {
               }));
 }
 
-function loadDayAsList(number) {
+function separated(delimiter, number) {
   return Future.map(loadDay(number), (function (param) {
-                return Relude_String.splitList("\n", param);
+                return Relude_String.splitList(delimiter, param);
               }));
 }
 
+function newlineSeparated(param) {
+  return separated("\n", param);
+}
+
+function commaSeparated(param) {
+  return separated(",", param);
+}
+
+var partial_arg = Relude_List.map(Caml_format.caml_int_of_string);
+
+function mapToInts(param) {
+  return Relude_Function.flip(Future.map, partial_arg, param);
+}
+
+var partial_arg$1 = Relude_Function.Infix.$great$great;
+
+function newlineSeparatedInts(param) {
+  return partial_arg$1(newlineSeparated, mapToInts, param);
+}
+
+var partial_arg$2 = Relude_Function.Infix.$great$great;
+
+function commaSeparatedInts(param) {
+  return partial_arg$2(commaSeparated, mapToInts, param);
+}
+
 exports.loadDay = loadDay;
-exports.loadDayAsList = loadDayAsList;
-/* fs Not a pure module */
+exports.separated = separated;
+exports.newlineSeparated = newlineSeparated;
+exports.commaSeparated = commaSeparated;
+exports.mapToInts = mapToInts;
+exports.newlineSeparatedInts = newlineSeparatedInts;
+exports.commaSeparatedInts = commaSeparatedInts;
+/* partial_arg Not a pure module */

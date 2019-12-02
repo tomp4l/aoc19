@@ -14,20 +14,14 @@ let fuelRequiredIncludingFuel mass =
 let totalFuelRequiredIncludingFuel masses =
   Relude.List.map fuelRequiredIncludingFuel masses |> Relude.List.Int.sum
 
-let input = InputLoader.loadDayAsList 1
+let input = InputLoader.newlineSeparatedInts 1
+
+let ( >> ) = Relude.Function.Infix.( >> )
+
+let _ =
+  input |. Future.tap (totalFuelRequired >> Js.log2 "Fuel without extra fuel")
 
 let _ =
   input
   |. Future.tap
-       Relude.Function.Infix.(
-         Relude.List.map int_of_string
-         >> totalFuelRequired
-         >> Js.log2 "Fuel without extra fuel")
-
-let _ =
-  input
-  |. Future.tap
-       Relude.Function.Infix.(
-         Relude.List.map int_of_string
-         >> totalFuelRequiredIncludingFuel
-         >> Js.log2 "Fuel with fuel for fuel")
+       (totalFuelRequiredIncludingFuel >> Js.log2 "Fuel with fuel for fuel")

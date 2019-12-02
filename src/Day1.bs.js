@@ -4,7 +4,6 @@
 var Curry = require("bs-platform/lib/js/curry.js");
 var Future = require("reason-future/src/Future.bs.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
-var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var InputLoader$Aoc19 = require("./InputLoader.bs.js");
@@ -36,37 +35,19 @@ function totalFuelRequiredIncludingFuel(masses) {
   return Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map(fuelRequiredIncludingFuel)(masses));
 }
 
-var input = InputLoader$Aoc19.loadDayAsList(1);
+var input = InputLoader$Aoc19.newlineSeparatedInts(1);
 
-var partial_arg = Relude_List.map(Caml_format.caml_int_of_string);
-
-var partial_arg$1 = Relude_Function.Infix.$great$great;
-
-function partial_arg$2(param) {
-  return partial_arg$1(partial_arg, totalFuelRequired, param);
-}
-
-var partial_arg$3 = Relude_Function.Infix.$great$great;
+var $great$great = Relude_Function.Infix.$great$great;
 
 Future.tap(input, (function (param) {
-        return partial_arg$3(partial_arg$2, (function (param) {
+        return $great$great(totalFuelRequired, (function (param) {
                       console.log("Fuel without extra fuel", param);
                       return /* () */0;
                     }), param);
       }));
 
-var partial_arg$4 = Relude_List.map(Caml_format.caml_int_of_string);
-
-var partial_arg$5 = Relude_Function.Infix.$great$great;
-
-function partial_arg$6(param) {
-  return partial_arg$5(partial_arg$4, totalFuelRequiredIncludingFuel, param);
-}
-
-var partial_arg$7 = Relude_Function.Infix.$great$great;
-
 Future.tap(input, (function (param) {
-        return partial_arg$7(partial_arg$6, (function (param) {
+        return $great$great(totalFuelRequiredIncludingFuel, (function (param) {
                       console.log("Fuel with fuel for fuel", param);
                       return /* () */0;
                     }), param);
@@ -78,4 +59,5 @@ exports.fuelForFuel = fuelForFuel;
 exports.fuelRequiredIncludingFuel = fuelRequiredIncludingFuel;
 exports.totalFuelRequiredIncludingFuel = totalFuelRequiredIncludingFuel;
 exports.input = input;
+exports.$great$great = $great$great;
 /* input Not a pure module */
