@@ -6,7 +6,7 @@ external readFileWithEncoding :
   [@@bs.val] [@@bs.module "fs"]
 
 let loadDay number =
-  let filename = __dirname ^ "/input/day" ^ string_of_int number ^ ".txt" in
+  let filename = __dirname ^ "/../input/day" ^ string_of_int number ^ ".txt" in
   Future.make (fun resolve ->
       readFileWithEncoding filename "utf-8" (fun _ data -> resolve data))
 

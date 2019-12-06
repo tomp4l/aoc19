@@ -4,7 +4,7 @@
 var Future = require("reason-future/src/Future.bs.js");
 var Intcode$Aoc19 = require("./Intcode.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
-var InputLoader$Aoc19 = require("./InputLoader.bs.js");
+var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 
 var $great$great = Relude_Function.Infix.$great$great;
 

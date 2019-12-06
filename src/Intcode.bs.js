@@ -11,7 +11,7 @@ var Relude_Array = require("relude/src/Relude_Array.bs.js");
 var Relude_Tuple = require("relude/src/Relude_Tuple.bs.js");
 var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
-var Readline$Aoc19 = require("./Readline.bs.js");
+var Readline$Aoc19 = require("./lib/Readline.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 
 function position(a, tape) {

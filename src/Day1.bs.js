@@ -6,7 +6,7 @@ var Future = require("reason-future/src/Future.bs.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
-var InputLoader$Aoc19 = require("./InputLoader.bs.js");
+var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 function fuelRequired(mass) {

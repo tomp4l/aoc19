@@ -14,7 +14,7 @@ var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
-var InputLoader$Aoc19 = require("./InputLoader.bs.js");
+var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 var InvalidDirection = Caml_exceptions.create("Day3-Aoc19.InvalidDirection");

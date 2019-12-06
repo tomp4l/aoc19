@@ -6,7 +6,7 @@ var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Intcode$Aoc19 = require("./Intcode.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
-var InputLoader$Aoc19 = require("./InputLoader.bs.js");
+var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 
 function runWithInput(i, a, b) {
   return Intcode$Aoc19.run(Relude_List.replaceAt(2, b, Relude_List.replaceAt(1, a, i)));

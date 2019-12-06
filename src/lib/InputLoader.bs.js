@@ -10,7 +10,7 @@ var Relude_String = require("relude/src/Relude_String.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 
 function loadDay(number) {
-  var filename = __dirname + ("/input/day" + (String(number) + ".txt"));
+  var filename = __dirname + ("/../input/day" + (String(number) + ".txt"));
   return Future.make((function (resolve) {
                 Fs.readFile(filename, "utf-8", (function (param, data) {
                         return Curry._1(resolve, data);

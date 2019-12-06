@@ -15,8 +15,7 @@ let stringToDirection s =
   | "D", i -> Down (int_of_string i)
   | l, _ -> raise (InvalidDirection l)
 
-let distance d =
-  match d with Right i -> i | Left i -> i | Up i -> i | Down i -> i
+let distance d = match d with Right i | Left i | Up i | Down i -> i
 
 let pathFromDirection (direction : direction) (coord : coord) : coord list =
   let rec loop path dir coord' =

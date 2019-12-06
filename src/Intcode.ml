@@ -65,18 +65,18 @@ let doOutput tape pointer =
   |> Future.value
 
 let jumpIf tape pointer modes nonZero =
+  let open Relude.Option in
   let modes = Relude.Tuple.fromListAtLeast2 modes in
   let args = args2 pointer tape in
-  Relude.Option.map2 (fun a b -> (a, b)) args modes
-  |> Relude.Option.flatMap (fun ((a, b), (am, bm)) ->
+  map2 (fun a b -> (a, b)) args modes
+  |> flatMap (fun ((a, b), (am, bm)) ->
          let a' = getVal am a tape in
          let b' = getVal bm b tape in
-         Relude.Option.map2
+         map2
            (fun v' p ->
              match (nonZero, v') with
              | false, 0 -> p
-             | true, 0 -> pointer + 3
-             | false, _ -> pointer + 3
+             | false, _ | true, 0 -> pointer + 3
              | _ -> p)
            a' b')
   |> Future.value
