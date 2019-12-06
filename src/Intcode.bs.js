@@ -2,7 +2,6 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
-var Future = require("reason-future/src/Future.bs.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
@@ -13,6 +12,7 @@ var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var Readline$Aoc19 = require("./lib/Readline.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
+var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
 function position(a, tape) {
   return Relude_Option.map((function (prim) {
@@ -72,7 +72,7 @@ function doOp3(tape, pointer, modes, op) {
                         return op3(tape, modes, op, param, param$1, param$2);
                       }), param);
         }), args);
-  return Future.value(pointer + 4 | 0);
+  return StackSafeFuture$Aoc19.pure(pointer + 4 | 0);
 }
 
 function readInput(tape, pointer) {
@@ -81,7 +81,10 @@ function readInput(tape, pointer) {
   var cell = Relude_Option.map((function (prim) {
           return prim[0];
         }), Relude_Array.at(pointer + 1 | 0, tape));
-  return Future.tap(Future.map(input, (function (i) {
+  return StackSafeFuture$Aoc19.tap((function (param) {
+                  readline.close();
+                  return /* () */0;
+                }))(StackSafeFuture$Aoc19.map((function (i) {
                     var partial_arg = pointer + 2 | 0;
                     return Relude_Option.map((function (param) {
                                   return Relude_Function.$$const(partial_arg, param);
@@ -91,10 +94,7 @@ function readInput(tape, pointer) {
                                     }), Curry._2(Relude_Option.flatMap, (function (c) {
                                           return Relude_Array.at(c, tape);
                                         }), cell)));
-                  })), (function (param) {
-                readline.close();
-                return /* () */0;
-              }));
+                  }), input));
 }
 
 function doOutput(tape, pointer) {
@@ -102,7 +102,7 @@ function doOutput(tape, pointer) {
           return prim[0];
         }), Relude_Array.at(pointer + 1 | 0, tape));
   var partial_arg = pointer + 2 | 0;
-  return Future.value(Relude_Option.map((function (param) {
+  return StackSafeFuture$Aoc19.pure(Relude_Option.map((function (param) {
                     return Relude_Function.$$const(partial_arg, param);
                   }), Relude_Option.map((function (v) {
                         console.log("Output: ", v[0]);
@@ -115,7 +115,7 @@ function doOutput(tape, pointer) {
 function jumpIf(tape, pointer, modes, nonZero) {
   var modes$1 = Relude_Tuple.fromListAtLeast2(modes);
   var args = args2(pointer, tape);
-  return Future.value(Curry._2(Relude_Option.flatMap, (function (param) {
+  return StackSafeFuture$Aoc19.pure(Curry._2(Relude_Option.flatMap, (function (param) {
                     var match = param[1];
                     var match$1 = param[0];
                     var a$prime = getVal(match[0], match$1[0], tape);
@@ -236,7 +236,7 @@ function run(intcode) {
           case "9" :
               var match$9 = split[1];
               if (match$9 && match$9[0] === "9") {
-                $$continue = Future.value(undefined);
+                $$continue = StackSafeFuture$Aoc19.pure(undefined);
               } else {
                 exit = 1;
               }
@@ -249,27 +249,27 @@ function run(intcode) {
       }
       if (exit === 1) {
         console.error("Unknown op", op);
-        $$continue = Future.value(undefined);
+        $$continue = StackSafeFuture$Aoc19.pure(undefined);
       }
       
     } else {
       console.error("Invalid pointer", pointer);
-      $$continue = Future.value(undefined);
+      $$continue = StackSafeFuture$Aoc19.pure(undefined);
     }
-    return Future.flatMap($$continue, (function ($$continue) {
+    return Curry._2(StackSafeFuture$Aoc19.flatMap, (function ($$continue) {
                   if ($$continue !== undefined) {
                     return program($$continue);
                   } else {
-                    return Future.value(/* () */0);
+                    return StackSafeFuture$Aoc19.pure(/* () */0);
                   }
-                }));
+                }), $$continue);
   };
   var done_ = program(0);
-  return Future.map(done_, (function (param) {
+  return StackSafeFuture$Aoc19.map((function (param) {
                 return Relude_Option.map((function (prim) {
                               return prim[0];
                             }), Relude_Array.head(tape));
-              }));
+              }), done_);
 }
 
 exports.position = position;

@@ -22,4 +22,4 @@ let defaultInput = inOut ~input:stdin ~output:stdout
 
 let make () = createInterface defaultInput
 
-let question readline query = Future.make (readline |. question query)
+let question readline query = StackSafeFuture.make (readline |. question query)

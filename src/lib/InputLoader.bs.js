@@ -3,15 +3,15 @@
 
 var Fs = require("fs");
 var Curry = require("bs-platform/lib/js/curry.js");
-var Future = require("reason-future/src/Future.bs.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
+var StackSafeFuture$Aoc19 = require("./StackSafeFuture.bs.js");
 
 function loadDay(number) {
   var filename = __dirname + ("/../input/day" + (String(number) + ".txt"));
-  return Future.make((function (resolve) {
+  return StackSafeFuture$Aoc19.make((function (resolve) {
                 Fs.readFile(filename, "utf-8", (function (param, data) {
                         return Curry._1(resolve, data);
                       }));
@@ -20,9 +20,9 @@ function loadDay(number) {
 }
 
 function separated(delimiter, number) {
-  return Future.map(loadDay(number), (function (param) {
+  return StackSafeFuture$Aoc19.map((function (param) {
                 return Relude_String.splitList(delimiter, param);
-              }));
+              }), loadDay(number));
 }
 
 function newlineSeparated(param) {
@@ -36,7 +36,7 @@ function commaSeparated(param) {
 var partial_arg = Relude_List.map(Caml_format.caml_int_of_string);
 
 function mapToInts(param) {
-  return Relude_Function.flip(Future.map, partial_arg, param);
+  return StackSafeFuture$Aoc19.map(partial_arg, param);
 }
 
 var partial_arg$1 = Relude_Function.Infix.$great$great;

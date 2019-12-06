@@ -2,11 +2,11 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
-var Future = require("reason-future/src/Future.bs.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
+var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 function fuelRequired(mass) {
@@ -39,19 +39,19 @@ var input = InputLoader$Aoc19.newlineSeparatedInts(1);
 
 var $great$great = Relude_Function.Infix.$great$great;
 
-Future.tap(input, (function (param) {
-        return $great$great(totalFuelRequired, (function (param) {
-                      console.log("Fuel without extra fuel", param);
-                      return /* () */0;
-                    }), param);
-      }));
+StackSafeFuture$Aoc19.tap((function (param) {
+          return $great$great(totalFuelRequired, (function (param) {
+                        console.log("Fuel without extra fuel", param);
+                        return /* () */0;
+                      }), param);
+        }))(input);
 
-Future.tap(input, (function (param) {
-        return $great$great(totalFuelRequiredIncludingFuel, (function (param) {
-                      console.log("Fuel with fuel for fuel", param);
-                      return /* () */0;
-                    }), param);
-      }));
+StackSafeFuture$Aoc19.tap((function (param) {
+          return $great$great(totalFuelRequiredIncludingFuel, (function (param) {
+                        console.log("Fuel with fuel for fuel", param);
+                        return /* () */0;
+                      }), param);
+        }))(input);
 
 exports.fuelRequired = fuelRequired;
 exports.totalFuelRequired = totalFuelRequired;

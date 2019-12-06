@@ -17,7 +17,6 @@
   "dependencies": {
     "bs-abstract": "^0.18.0",
     "bs-node": "github:reasonml-community/bs-node",
-    "reason-future": "^2.5.0",
     "relude": "^0.38.0"
   }
 }

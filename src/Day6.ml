@@ -83,13 +83,16 @@ let distanceBetweenYouAndSanta orbit =
 let input = InputLoader.newlineSeparated 6
 
 let orbits =
-  Future.map input (fun i ->
-      Relude.List.map entryToTuple i |> entriesToMap |> mapToOrbit)
+  StackSafeFuture.map
+    (fun i -> Relude.List.map entryToTuple i |> entriesToMap |> mapToOrbit)
+    input
 
 let _ =
-  Future.tap orbits (fun i ->
-      i |> totalOrbitDistance |> Js.log2 "Total path is: ")
+  StackSafeFuture.tap
+    (fun i -> i |> totalOrbitDistance |> Js.log2 "Total path is: ")
+    orbits
 
 let _ =
-  Future.tap orbits (fun i ->
-      i |> distanceBetweenYouAndSanta |> Js.log2 "Distance: ")
+  StackSafeFuture.tap
+    (fun i -> i |> distanceBetweenYouAndSanta |> Js.log2 "Distance: ")
+    orbits

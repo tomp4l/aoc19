@@ -41,19 +41,21 @@ let doOp3 tape pointer modes op =
   let _ =
     args |> Relude.Option.map (Relude.Function.uncurry3 (op3 tape modes op))
   in
-  Some (pointer + 4) |> Future.value
+  Some (pointer + 4) |> StackSafeFuture.pure
 
 let readInput tape pointer =
   let readline = Readline.make () in
   let open Relude.Option in
   let input = Readline.question readline "input dear human\n" in
   let cell = Relude.Array.at (pointer + 1) tape |> map ( ! ) in
-  Future.map input (fun i ->
+  StackSafeFuture.map
+    (fun i ->
       cell
       |> flatMap (fun c -> Relude.Array.at c tape)
       |> map (fun v -> v := int_of_string i)
       |> map (Relude.Function.const (pointer + 2)))
-  |. Future.tap (fun _ -> Readline.close readline)
+    input
+  |> StackSafeFuture.tap (fun _ -> Readline.close readline)
 
 let doOutput tape pointer =
   let open Relude.Option in
@@ -62,7 +64,7 @@ let doOutput tape pointer =
   |> flatMap (fun c -> Relude.Array.at c tape)
   |> map (fun v -> Js.log2 "Output: " !v)
   |> map (Relude.Function.const (pointer + 2))
-  |> Future.value
+  |> StackSafeFuture.pure
 
 let jumpIf tape pointer modes nonZero =
   let open Relude.Option in
@@ -79,7 +81,7 @@ let jumpIf tape pointer modes nonZero =
              | false, _ | true, 0 -> pointer + 3
              | _ -> p)
            a' b')
-  |> Future.value
+  |> StackSafeFuture.pure
 
 let run intcode =
   let tape =
@@ -105,20 +107,21 @@ let run intcode =
               doOp3 tape pointer modes (fun a b -> if a < b then 1 else 0)
           | "8" :: "0" :: modes ->
               doOp3 tape pointer modes (fun a b -> if a == b then 1 else 0)
-          | "9" :: "9" :: _ -> None |> Future.value
+          | "9" :: "9" :: _ -> None |> StackSafeFuture.pure
           | _ ->
               let _ = Js.Console.error2 "Unknown op" op in
-              None |> Future.value )
+              None |> StackSafeFuture.pure )
       | None ->
           let _ = Js.Console.error2 "Invalid pointer" pointer in
-          None |> Future.value
+          None |> StackSafeFuture.pure
     in
     continue
-    |. Future.flatMap (fun continue ->
+    |> StackSafeFuture.flatMap (fun continue ->
            match continue with
            | Some pointer -> program pointer
-           | None -> Future.value ())
+           | None -> StackSafeFuture.pure ())
   in
   let done_ = program 0 in
   done_
-  |. Future.map (fun () -> tape |> Relude.Array.head |> Relude.Option.map ( ! ))
+  |> StackSafeFuture.map (fun () ->
+         tape |> Relude.Array.head |> Relude.Option.map ( ! ))

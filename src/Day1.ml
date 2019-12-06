@@ -19,9 +19,10 @@ let input = InputLoader.newlineSeparatedInts 1
 let ( >> ) = Relude.Function.Infix.( >> )
 
 let _ =
-  input |. Future.tap (totalFuelRequired >> Js.log2 "Fuel without extra fuel")
+  input
+  |> StackSafeFuture.tap (totalFuelRequired >> Js.log2 "Fuel without extra fuel")
 
 let _ =
   input
-  |. Future.tap
+  |> StackSafeFuture.tap
        (totalFuelRequiredIncludingFuel >> Js.log2 "Fuel with fuel for fuel")

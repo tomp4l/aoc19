@@ -2,7 +2,6 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
-var Future = require("reason-future/src/Future.bs.js");
 var Relude_Set = require("relude/src/Relude_Set.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Tuple = require("relude/src/Relude_Tuple.bs.js");
@@ -11,6 +10,7 @@ var Relude_String = require("relude/src/Relude_String.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var Relude_StringMap = require("relude/src/Relude_StringMap.bs.js");
 var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
+var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 function entryToTuple(entry) {
@@ -170,19 +170,19 @@ function distanceBetweenYouAndSanta(orbit) {
 
 var input = InputLoader$Aoc19.newlineSeparated(6);
 
-var orbits = Future.map(input, (function (i) {
+var orbits = StackSafeFuture$Aoc19.map((function (i) {
         return mapToOrbit(entriesToMap(Relude_List.map(entryToTuple)(i)));
-      }));
+      }), input);
 
-Future.tap(orbits, (function (i) {
-        console.log("Total path is: ", totalOrbitDistance(i));
-        return /* () */0;
-      }));
+StackSafeFuture$Aoc19.tap((function (i) {
+          console.log("Total path is: ", totalOrbitDistance(i));
+          return /* () */0;
+        }))(orbits);
 
-Future.tap(orbits, (function (i) {
-        console.log("Distance: ", distanceBetweenYouAndSanta(i));
-        return /* () */0;
-      }));
+StackSafeFuture$Aoc19.tap((function (i) {
+          console.log("Distance: ", distanceBetweenYouAndSanta(i));
+          return /* () */0;
+        }))(orbits);
 
 var $great$great = Relude_Function.flipCompose;
 

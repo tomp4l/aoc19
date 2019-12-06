@@ -7,17 +7,17 @@ external readFileWithEncoding :
 
 let loadDay number =
   let filename = __dirname ^ "/../input/day" ^ string_of_int number ^ ".txt" in
-  Future.make (fun resolve ->
+  StackSafeFuture.make (fun resolve ->
       readFileWithEncoding filename "utf-8" (fun _ data -> resolve data))
 
 let separated delimiter number =
-  loadDay number |. Future.map (Relude.String.splitList ~delimiter)
+  loadDay number |> StackSafeFuture.map (Relude.String.splitList ~delimiter)
 
 let newlineSeparated = separated "\n"
 
 let commaSeparated = separated ","
 
-let mapToInts = Relude.Function.flip Future.map (Relude.List.map int_of_string)
+let mapToInts = StackSafeFuture.map (Relude.List.map int_of_string)
 
 let newlineSeparatedInts =
   let open Relude.Function.Infix in

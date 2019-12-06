@@ -106,7 +106,7 @@ let findClosestIntersection pathA pathB =
 
 let input =
   InputLoader.newlineSeparated 3
-  |. Future.map
+  |> StackSafeFuture.map
        ( Relude.List.map
            ( Relude.String.splitList ~delimiter:","
            >> Relude.List.map stringToDirection )
@@ -114,7 +114,7 @@ let input =
 
 let _ =
   input
-  |. Future.tap (fun a ->
+  |> StackSafeFuture.tap (fun a ->
          match a with
          | [ a; b ] ->
              getCrossings a b |> CoordSet.toList |> getClosestToOrigin
@@ -124,7 +124,7 @@ let _ =
 
 let _ =
   input
-  |. Future.tap (fun a ->
+  |> StackSafeFuture.tap (fun a ->
          match a with
          | [ a; b ] -> findClosestIntersection a b |> Js.log2 "Closest paths"
          | _ -> ())

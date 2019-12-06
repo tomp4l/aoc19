@@ -3,7 +3,6 @@
 
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
-var Future = require("reason-future/src/Future.bs.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_Map = require("relude/src/Relude_Map.bs.js");
@@ -15,6 +14,7 @@ var Relude_String = require("relude/src/Relude_String.bs.js");
 var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
+var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 var InvalidDirection = Caml_exceptions.create("Day3-Aoc19.InvalidDirection");
@@ -218,37 +218,37 @@ var partial_arg$2 = Relude_List.map((function (param) {
                     }), partial_arg$1, param);
       }));
 
-var input = Future.map(InputLoader$Aoc19.newlineSeparated(3), (function (param) {
+var input = StackSafeFuture$Aoc19.map((function (param) {
         return $great$great(partial_arg$2, partial_arg, param);
-      }));
+      }), InputLoader$Aoc19.newlineSeparated(3));
 
-Future.tap(input, (function (a) {
-        if (a) {
-          var match = a[1];
-          if (match && !match[1]) {
-            console.log("Closest to origin", manhattenDistance(getClosestToOrigin(Curry._1(CoordSet.toList, getCrossings(a[0], match[0])))));
-            return /* () */0;
+StackSafeFuture$Aoc19.tap((function (a) {
+          if (a) {
+            var match = a[1];
+            if (match && !match[1]) {
+              console.log("Closest to origin", manhattenDistance(getClosestToOrigin(Curry._1(CoordSet.toList, getCrossings(a[0], match[0])))));
+              return /* () */0;
+            } else {
+              return /* () */0;
+            }
           } else {
             return /* () */0;
           }
-        } else {
-          return /* () */0;
-        }
-      }));
+        }))(input);
 
-Future.tap(input, (function (a) {
-        if (a) {
-          var match = a[1];
-          if (match && !match[1]) {
-            console.log("Closest paths", findClosestIntersection(a[0], match[0]));
-            return /* () */0;
+StackSafeFuture$Aoc19.tap((function (a) {
+          if (a) {
+            var match = a[1];
+            if (match && !match[1]) {
+              console.log("Closest paths", findClosestIntersection(a[0], match[0]));
+              return /* () */0;
+            } else {
+              return /* () */0;
+            }
           } else {
             return /* () */0;
           }
-        } else {
-          return /* () */0;
-        }
-      }));
+        }))(input);
 
 exports.InvalidDirection = InvalidDirection;
 exports.$great$great = $great$great;
