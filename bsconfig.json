@@ -12,8 +12,7 @@
   "suffix": ".bs.js",
   "bs-dependencies": [
     "bs-abstract",
-    "relude",
-    "reason-future"
+    "relude"
   ],
   "warnings": {
     "error" : "+101"

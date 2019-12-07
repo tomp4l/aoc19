@@ -75,29 +75,25 @@ function doOp3(tape, pointer, modes, op) {
   return StackSafeFuture$Aoc19.pure(pointer + 4 | 0);
 }
 
-function readInput(tape, pointer) {
-  var readline = Readline$Aoc19.make(/* () */0);
-  var input = Readline$Aoc19.question(readline, "input dear human\n");
+function readInput(tape, pointer, nextInput) {
+  var input = Curry._1(nextInput, /* () */0);
   var cell = Relude_Option.map((function (prim) {
           return prim[0];
         }), Relude_Array.at(pointer + 1 | 0, tape));
-  return StackSafeFuture$Aoc19.tap((function (param) {
-                  readline.close();
-                  return /* () */0;
-                }))(StackSafeFuture$Aoc19.map((function (i) {
-                    var partial_arg = pointer + 2 | 0;
-                    return Relude_Option.map((function (param) {
-                                  return Relude_Function.$$const(partial_arg, param);
-                                }), Relude_Option.map((function (v) {
-                                      v[0] = Caml_format.caml_int_of_string(i);
-                                      return /* () */0;
-                                    }), Curry._2(Relude_Option.flatMap, (function (c) {
-                                          return Relude_Array.at(c, tape);
-                                        }), cell)));
-                  }), input));
+  return StackSafeFuture$Aoc19.map((function (i) {
+                var partial_arg = pointer + 2 | 0;
+                return Relude_Option.map((function (param) {
+                              return Relude_Function.$$const(partial_arg, param);
+                            }), Relude_Option.map((function (v) {
+                                  v[0] = i;
+                                  return /* () */0;
+                                }), Curry._2(Relude_Option.flatMap, (function (c) {
+                                      return Relude_Array.at(c, tape);
+                                    }), cell)));
+              }), input);
 }
 
-function doOutput(tape, pointer) {
+function doOutput(tape, pointer, nextOutput) {
   var cell = Relude_Option.map((function (prim) {
           return prim[0];
         }), Relude_Array.at(pointer + 1 | 0, tape));
@@ -105,8 +101,7 @@ function doOutput(tape, pointer) {
   return StackSafeFuture$Aoc19.pure(Relude_Option.map((function (param) {
                     return Relude_Function.$$const(partial_arg, param);
                   }), Relude_Option.map((function (v) {
-                        console.log("Output: ", v[0]);
-                        return /* () */0;
+                        return Curry._1(nextOutput, v[0]);
                       }), Curry._2(Relude_Option.flatMap, (function (c) {
                             return Relude_Array.at(c, tape);
                           }), cell))));
@@ -141,7 +136,22 @@ function jumpIf(tape, pointer, modes, nonZero) {
                       }), args, modes$1)));
 }
 
-function run(intcode) {
+function defaultNextInput(param) {
+  var readline = Readline$Aoc19.make(/* () */0);
+  return StackSafeFuture$Aoc19.tap((function (param) {
+                  readline.close();
+                  return /* () */0;
+                }))(StackSafeFuture$Aoc19.map(Caml_format.caml_int_of_string, Readline$Aoc19.question(readline, "input dear human\n")));
+}
+
+function defaultNextOutput(param) {
+  console.log("Output: ", param);
+  return /* () */0;
+}
+
+function run($staropt$star, $staropt$star$1, intcode) {
+  var nextInput = $staropt$star !== undefined ? $staropt$star : defaultNextInput;
+  var nextOutput = $staropt$star$1 !== undefined ? $staropt$star$1 : defaultNextOutput;
   var tape = Relude_Array.fromList(Relude_List.map((function (x) {
                 return /* record */[/* contents */x];
               }))(intcode));
@@ -176,7 +186,7 @@ function run(intcode) {
           case "3" :
               var match$3 = split[1];
               if (match$3 && match$3[0] === "0") {
-                $$continue = readInput(tape, pointer);
+                $$continue = readInput(tape, pointer, nextInput);
               } else {
                 exit = 1;
               }
@@ -184,7 +194,7 @@ function run(intcode) {
           case "4" :
               var match$4 = split[1];
               if (match$4 && match$4[0] === "0") {
-                $$continue = doOutput(tape, pointer);
+                $$continue = doOutput(tape, pointer, nextOutput);
               } else {
                 exit = 1;
               }
@@ -282,5 +292,7 @@ exports.doOp3 = doOp3;
 exports.readInput = readInput;
 exports.doOutput = doOutput;
 exports.jumpIf = jumpIf;
+exports.defaultNextInput = defaultNextInput;
+exports.defaultNextOutput = defaultNextOutput;
 exports.run = run;
 /* Relude_List Not a pure module */

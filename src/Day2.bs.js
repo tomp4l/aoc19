@@ -10,7 +10,8 @@ var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
 function runWithInput(i, a, b) {
-  return Intcode$Aoc19.run(Relude_List.replaceAt(2, b, Relude_List.replaceAt(1, a, i)));
+  var replaced = Relude_List.replaceAt(2, b, Relude_List.replaceAt(1, a, i));
+  return Intcode$Aoc19.run(undefined, undefined, replaced);
 }
 
 var viableInput = Relude_List.makeWithIndex(100, Relude_Function.identity);

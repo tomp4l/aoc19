@@ -43,26 +43,24 @@ let doOp3 tape pointer modes op =
   in
   Some (pointer + 4) |> StackSafeFuture.pure
 
-let readInput tape pointer =
-  let readline = Readline.make () in
+let readInput tape pointer nextInput =
   let open Relude.Option in
-  let input = Readline.question readline "input dear human\n" in
+  let input = nextInput () in
   let cell = Relude.Array.at (pointer + 1) tape |> map ( ! ) in
   StackSafeFuture.map
     (fun i ->
       cell
       |> flatMap (fun c -> Relude.Array.at c tape)
-      |> map (fun v -> v := int_of_string i)
+      |> map (fun v -> v := i)
       |> map (Relude.Function.const (pointer + 2)))
     input
-  |> StackSafeFuture.tap (fun _ -> Readline.close readline)
 
-let doOutput tape pointer =
+let doOutput tape pointer nextOutput =
   let open Relude.Option in
   let cell = Relude.Array.at (pointer + 1) tape |> map ( ! ) in
   cell
   |> flatMap (fun c -> Relude.Array.at c tape)
-  |> map (fun v -> Js.log2 "Output: " !v)
+  |> map (fun v -> nextOutput !v)
   |> map (Relude.Function.const (pointer + 2))
   |> StackSafeFuture.pure
 
@@ -83,7 +81,16 @@ let jumpIf tape pointer modes nonZero =
            a' b')
   |> StackSafeFuture.pure
 
-let run intcode =
+let defaultNextInput () =
+  let readline = Readline.make () in
+  Readline.question readline "input dear human\n"
+  |> StackSafeFuture.map int_of_string
+  |> StackSafeFuture.tap (fun _ -> Readline.close readline)
+
+let defaultNextOutput : int -> unit = Js.log2 "Output: "
+
+let run ?(nextInput = defaultNextInput) ?(nextOutput = defaultNextOutput)
+    intcode =
   let tape =
     Relude.List.map (fun x -> ref x) intcode |> Relude.Array.fromList
   in
@@ -99,8 +106,8 @@ let run intcode =
           match split with
           | "1" :: "0" :: modes -> doOp3 tape pointer modes ( + )
           | "2" :: "0" :: modes -> doOp3 tape pointer modes ( * )
-          | "3" :: "0" :: _ -> readInput tape pointer
-          | "4" :: "0" :: _ -> doOutput tape pointer
+          | "3" :: "0" :: _ -> readInput tape pointer nextInput
+          | "4" :: "0" :: _ -> doOutput tape pointer nextOutput
           | "5" :: "0" :: modes -> jumpIf tape pointer modes true
           | "6" :: "0" :: modes -> jumpIf tape pointer modes false
           | "7" :: "0" :: modes ->

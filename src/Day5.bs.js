@@ -10,7 +10,9 @@ var $great$great = Relude_Function.Infix.$great$great;
 
 var input = InputLoader$Aoc19.commaSeparatedInts(5);
 
-StackSafeFuture$Aoc19.map(Intcode$Aoc19.run, input);
+StackSafeFuture$Aoc19.map((function (eta) {
+        return Intcode$Aoc19.run(undefined, undefined, eta);
+      }), input);
 
 exports.$great$great = $great$great;
 exports.input = input;
