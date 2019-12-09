@@ -3,6 +3,7 @@
 
 var Curry = require("bs-platform/lib/js/curry.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
+var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Intcode$Aoc19 = require("./Intcode.bs.js");
 var Relude_Option = require("relude/src/Relude_Option.bs.js");
@@ -25,7 +26,7 @@ function combinations(a, b) {
 
 function allInputs(viableInputs) {
   var allDifferent = function (param) {
-    return Caml_obj.caml_equal(Curry._1(Relude_List_Specializations.Int.sort, /* :: */[
+    return Caml_obj.caml_equal(Curry._1(Relude_List_Specializations.$$String.sort, /* :: */[
                     param[0],
                     /* :: */[
                       param[1],
@@ -40,7 +41,7 @@ function allInputs(viableInputs) {
                         ]
                       ]
                     ]
-                  ]), Curry._1(Relude_List_Specializations.Int.sort, viableInputs));
+                  ]), Curry._1(Relude_List_Specializations.$$String.sort, viableInputs));
   };
   return Relude_List.filter(allDifferent, Relude_List.map((function (param) {
                       var match = param[1];
@@ -56,7 +57,7 @@ function allInputs(viableInputs) {
                     }))(combinations(viableInputs, combinations(viableInputs, combinations(viableInputs, combinations(viableInputs, viableInputs))))));
 }
 
-var input = InputLoader$Aoc19.commaSeparatedInts(7);
+var input = InputLoader$Aoc19.commaSeparated(7);
 
 var NoMoreInput = Caml_exceptions.create("Day7-Aoc19.NoMoreInput");
 
@@ -82,7 +83,7 @@ function runInput(computer, a, b, c, d, e) {
   var a$prime = Curry._1(computer, /* :: */[
         a,
         /* :: */[
-          0,
+          "0",
           /* [] */0
         ]
       ]);
@@ -132,22 +133,22 @@ function maxOutput(input) {
                               }), param, param$1, param$2, param$3, param$4);
                 }), param);
   };
-  return StackSafeFuture$Aoc19.map(Relude_List_Specializations.Int.max, Curry._1(StackSafeFuture$Aoc19.all, Relude_List.map(runUncurried)(allInputs(/* :: */[
-                          0,
-                          /* :: */[
-                            1,
-                            /* :: */[
-                              2,
+  return StackSafeFuture$Aoc19.map(Relude_List_Specializations.Int.max, StackSafeFuture$Aoc19.map(Relude_List.map(Caml_format.caml_int_of_string), Curry._1(StackSafeFuture$Aoc19.all, Relude_List.map(runUncurried)(allInputs(/* :: */[
+                              "0",
                               /* :: */[
-                                3,
+                                "1",
                                 /* :: */[
-                                  4,
-                                  /* [] */0
+                                  "2",
+                                  /* :: */[
+                                    "3",
+                                    /* :: */[
+                                      "4",
+                                      /* [] */0
+                                    ]
+                                  ]
                                 ]
                               ]
-                            ]
-                          ]
-                        ]))));
+                            ])))));
 }
 
 function makeLinkedComputer(input, $$const, in_, out) {
@@ -232,7 +233,7 @@ function tieFeedbackLoop(lastOutV, lastStack) {
     var firstIn$1 = makeIn(lastStack, /* () */0);
     if (first[0]) {
       first[0] = false;
-      lastOut(0);
+      lastOut("0");
     }
     return firstIn$1;
   };
@@ -243,7 +244,7 @@ function tieFeedbackLoop(lastOutV, lastStack) {
 }
 
 function feedbackN(input, ns) {
-  var lastOutV = /* record */[/* contents */0];
+  var lastOutV = /* record */[/* contents */"0"];
   var stacks = Relude_List.map((function (param) {
             var v = futureAndResolve(/* () */0);
             return /* record */[/* contents : :: */[
@@ -292,22 +293,22 @@ function maxOutputWithFeedback(input) {
   var runUncurried = function (param) {
     return feedback5(input, param);
   };
-  return StackSafeFuture$Aoc19.map(Relude_List_Specializations.Int.max, Curry._1(StackSafeFuture$Aoc19.all, Relude_List.map(runUncurried)(allInputs(/* :: */[
-                          5,
-                          /* :: */[
-                            6,
-                            /* :: */[
-                              7,
+  return StackSafeFuture$Aoc19.map(Relude_List_Specializations.Int.max, StackSafeFuture$Aoc19.map(Relude_List.map(Caml_format.caml_int_of_string), Curry._1(StackSafeFuture$Aoc19.all, Relude_List.map(runUncurried)(allInputs(/* :: */[
+                              "5",
                               /* :: */[
-                                8,
+                                "6",
                                 /* :: */[
-                                  9,
-                                  /* [] */0
+                                  "7",
+                                  /* :: */[
+                                    "8",
+                                    /* :: */[
+                                      "9",
+                                      /* [] */0
+                                    ]
+                                  ]
                                 ]
                               ]
-                            ]
-                          ]
-                        ]))));
+                            ])))));
 }
 
 StackSafeFuture$Aoc19.tap((function (param) {

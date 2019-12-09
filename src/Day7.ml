@@ -6,14 +6,14 @@ let combinations a b = List.flatMap (fun a -> List.map (fun b -> (a, b)) b) a
 
 let allInputs viableInputs =
   let allDifferent (a, b, c, d, e) =
-    List.Int.sort [ a; b; c; d; e ] = List.Int.sort viableInputs
+    List.String.sort [ a; b; c; d; e ] = List.String.sort viableInputs
   in
   viableInputs |> combinations viableInputs |> combinations viableInputs
   |> combinations viableInputs |> combinations viableInputs
   |> List.map (fun (e, (d, (c, (b, a)))) -> (a, b, c, d, e))
   |> List.filter allDifferent
 
-let input = InputLoader.commaSeparatedInts 7
+let input = InputLoader.commaSeparated 7
 
 exception NoMoreInput
 
@@ -33,7 +33,7 @@ let programmed input inputs =
 
 let runInput computer a b c d e =
   let open StackSafeFuture in
-  let a' = computer [ a; 0 ] in
+  let a' = computer [ a; "0" ] in
   let b' = a' |> flatMap (fun a' -> computer [ b; a' ]) in
   let c' = b' |> flatMap (fun b' -> computer [ c; b' ]) in
   let d' = c' |> flatMap (fun c' -> computer [ d; c' ]) in
@@ -41,8 +41,9 @@ let runInput computer a b c d e =
 
 let maxOutput input =
   let runUncurried = Function.uncurry5 (runInput (programmed input)) in
-  allInputs [ 0; 1; 2; 3; 4 ]
+  allInputs [ "0"; "1"; "2"; "3"; "4" ]
   |> List.map runUncurried |> StackSafeFuture.all
+  |> StackSafeFuture.map (Relude.List.map int_of_string)
   |> StackSafeFuture.map List.Int.max
 
 let makeLinkedComputer input const in_ out =
@@ -98,14 +99,14 @@ let tieFeedbackLoop lastOutV lastStack =
       (* This needs to trigger after the input has been fetched or it will pop too soon *)
       if !first then
         let () = first := false in
-        lastOut 0
+        lastOut "0"
     in
     firstIn
   in
   (lastOut, firstIn)
 
 let feedbackN input ns =
-  let lastOutV = ref 0 in
+  let lastOutV = ref "0" in
   let stacks = List.map (fun _ -> Stack.pure (futureAndResolve ())) ns in
   let lastStack = List.last stacks |> Option.getOrThrow in
   let lastOut, firstIn = tieFeedbackLoop lastOutV lastStack in
@@ -123,8 +124,9 @@ let feedback5 input (a, b, c, d, e) = feedbackN input [ a; b; c; d; e ]
 
 let maxOutputWithFeedback input =
   let runUncurried = feedback5 input in
-  allInputs [ 5; 6; 7; 8; 9 ]
+  allInputs [ "5"; "6"; "7"; "8"; "9" ]
   |> List.map runUncurried |> StackSafeFuture.all
+  |> StackSafeFuture.map (Relude.List.map int_of_string)
   |> StackSafeFuture.map List.Int.max
 
 let _ =

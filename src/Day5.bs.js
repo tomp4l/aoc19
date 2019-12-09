@@ -8,7 +8,7 @@ var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
 var $great$great = Relude_Function.Infix.$great$great;
 
-var input = InputLoader$Aoc19.commaSeparatedInts(5);
+var input = InputLoader$Aoc19.commaSeparated(5);
 
 StackSafeFuture$Aoc19.map((function (eta) {
         return Intcode$Aoc19.run(undefined, undefined, eta);

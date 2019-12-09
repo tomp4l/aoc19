@@ -3,145 +3,218 @@
 
 var Curry = require("bs-platform/lib/js/curry.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
+var Relude_Int = require("relude/src/Relude_Int.bs.js");
+var Relude_Map = require("relude/src/Relude_Map.bs.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
-var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
-var Relude_Array = require("relude/src/Relude_Array.bs.js");
-var Relude_Tuple = require("relude/src/Relude_Tuple.bs.js");
 var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var Readline$Aoc19 = require("./lib/Readline.bs.js");
+var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
-function position(a, tape) {
-  return Relude_Option.map((function (prim) {
-                return prim[0];
-              }), Relude_Array.at(a[0], tape));
+var $$Map = Relude_Map.WithOrd(Relude_Int.Ord);
+
+function fromList(list) {
+  return Relude_List.foldLeft((function (map, param) {
+                  return Curry._3($$Map.set, param[1], param[0], map);
+                }), Curry._1($$Map.make, /* () */0))(Relude_List.zipWithIndex(list));
 }
 
-function immediate(a) {
-  return Caml_option.some(a[0]);
+var get = $$Map.get;
+
+var set = $$Map.set;
+
+function setFromMemory(m) {
+  return Curry._1($$Map.set, Caml_format.caml_int_of_string(m));
 }
 
-function getVal(mode, a, tape) {
+function getFromMemory(m) {
+  return Curry._1($$Map.get, Caml_format.caml_int_of_string(m));
+}
+
+var Memory = {
+  $$Map: $$Map,
+  fromList: fromList,
+  get: get,
+  set: set,
+  setFromMemory: setFromMemory,
+  getFromMemory: getFromMemory
+};
+
+var asNumber = Caml_format.caml_int_of_string;
+
+function fromNumber(prim) {
+  return String(prim);
+}
+
+function fromList$1(list) {
+  return /* record */[
+          /* memory */fromList(list),
+          /* pointer */0,
+          /* relativeBase */0
+        ];
+}
+
+function get$1(param) {
+  var memory = param[/* memory */0];
+  var pointer = param[/* pointer */1];
+  return Relude_Option.getOrThrow(Curry._2(get, pointer, memory));
+}
+
+function increment(state) {
+  state[/* pointer */1] = state[/* pointer */1] + 1 | 0;
+  return /* () */0;
+}
+
+function incrementAndGet(state) {
+  var v = get$1(state);
+  increment(state);
+  return v;
+}
+
+var UnknownMode = Caml_exceptions.create("Intcode-Aoc19.ComputerState.UnknownMode");
+
+function position(p, param) {
+  var memory = param[/* memory */0];
+  return Relude_Option.getOrThrow(Curry._2($$Map.get, Caml_format.caml_int_of_string(p), memory));
+}
+
+function incrementAndGetWithMode(mode, state) {
+  var v = incrementAndGet(state);
   switch (mode) {
     case "0" :
-        return position(a, tape);
+        return position(v, state);
     case "1" :
-        return Caml_option.some(a[0]);
+        return v;
     default:
-      console.error("Unknown mode", mode);
-      return ;
+      throw UnknownMode;
   }
 }
 
-function op3(tape, modes, op, a, b, c) {
-  var modes$1 = Relude_Tuple.fromListAtLeast2(modes);
-  return Relude_Option.isSome(Curry._2(Relude_Option.flatMap, (function (param) {
-                    var l = getVal(param[0], a, tape);
-                    var r = getVal(param[1], b, tape);
-                    var c$1 = Relude_Array.at(c[0], tape);
-                    var calculated = Curry._3(Relude_Option.map2, op, l, r);
-                    return Curry._3(Relude_Option.map2, (function (v, state) {
-                                  v[0] = state;
-                                  return /* () */0;
-                                }), c$1, calculated);
-                  }), modes$1));
+function set$1(m, v, state) {
+  state[/* memory */0] = Curry._3($$Map.set, Caml_format.caml_int_of_string(m), v, state[/* memory */0]);
+  return /* () */0;
 }
 
-function args3(pointer, tape) {
-  return Relude_Function.uncurry3(Relude_Option.tuple3, /* tuple */[
-              Relude_Array.at(pointer + 1 | 0, tape),
-              Relude_Array.at(pointer + 2 | 0, tape),
-              Relude_Array.at(pointer + 3 | 0, tape)
-            ]);
+function setFromNumber(m, v) {
+  var partial_arg = String(v);
+  return (function (param) {
+      return set$1(m, partial_arg, param);
+    });
 }
 
-function args2(pointer, tape) {
-  return Relude_Function.uncurry2(Relude_Option.tuple2, /* tuple */[
-              Relude_Array.at(pointer + 1 | 0, tape),
-              Relude_Array.at(pointer + 2 | 0, tape)
-            ]);
+function doOp3(op, param, state) {
+  var m2 = param[1];
+  var m1 = param[0];
+  var l = Relude_Function.flipCompose((function (param) {
+          return incrementAndGetWithMode(m1, param);
+        }), asNumber, state);
+  var r = Relude_Function.flipCompose((function (param) {
+          return incrementAndGetWithMode(m2, param);
+        }), asNumber, state);
+  var $$location = incrementAndGet(state);
+  var value = Curry._2(op, l, r);
+  setFromNumber($$location, value)(state);
+  return /* Continue */1;
 }
 
-function doOp3(tape, pointer, modes, op) {
-  var args = args3(pointer, tape);
-  Relude_Option.map((function (param) {
-          return Relude_Function.uncurry3((function (param, param$1, param$2) {
-                        return op3(tape, modes, op, param, param$1, param$2);
-                      }), param);
-        }), args);
-  return StackSafeFuture$Aoc19.pure(pointer + 4 | 0);
+function add(param, param$1) {
+  return doOp3((function (prim, prim$1) {
+                return prim + prim$1 | 0;
+              }), param, param$1);
 }
 
-function readInput(tape, pointer, nextInput) {
-  var input = Curry._1(nextInput, /* () */0);
-  var cell = Relude_Option.map((function (prim) {
-          return prim[0];
-        }), Relude_Array.at(pointer + 1 | 0, tape));
-  return StackSafeFuture$Aoc19.map((function (i) {
-                var partial_arg = pointer + 2 | 0;
-                return Relude_Option.map((function (param) {
-                              return Relude_Function.$$const(partial_arg, param);
-                            }), Relude_Option.map((function (v) {
-                                  v[0] = i;
-                                  return /* () */0;
-                                }), Curry._2(Relude_Option.flatMap, (function (c) {
-                                      return Relude_Array.at(c, tape);
-                                    }), cell)));
-              }), input);
+function mult(param, param$1) {
+  return doOp3(Caml_int32.imul, param, param$1);
 }
 
-function doOutput(tape, pointer, nextOutput) {
-  var cell = Relude_Option.map((function (prim) {
-          return prim[0];
-        }), Relude_Array.at(pointer + 1 | 0, tape));
-  var partial_arg = pointer + 2 | 0;
-  return StackSafeFuture$Aoc19.pure(Relude_Option.map((function (param) {
-                    return Relude_Function.$$const(partial_arg, param);
-                  }), Relude_Option.map((function (v) {
-                        return Curry._1(nextOutput, v[0]);
-                      }), Curry._2(Relude_Option.flatMap, (function (c) {
-                            return Relude_Array.at(c, tape);
-                          }), cell))));
+function lt(param, param$1) {
+  return doOp3((function (a, b) {
+                if (a < b) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              }), param, param$1);
 }
 
-function jumpIf(tape, pointer, modes, nonZero) {
-  var modes$1 = Relude_Tuple.fromListAtLeast2(modes);
-  var args = args2(pointer, tape);
-  return StackSafeFuture$Aoc19.pure(Curry._2(Relude_Option.flatMap, (function (param) {
-                    var match = param[1];
-                    var match$1 = param[0];
-                    var a$prime = getVal(match[0], match$1[0], tape);
-                    var b$prime = getVal(match[1], match$1[1], tape);
-                    return Curry._3(Relude_Option.map2, (function (v$prime, p) {
-                                  if (nonZero) {
-                                    if (v$prime !== 0) {
-                                      return p;
-                                    } else {
-                                      return pointer + 3 | 0;
-                                    }
-                                  } else if (v$prime !== 0) {
-                                    return pointer + 3 | 0;
-                                  } else {
-                                    return p;
-                                  }
-                                }), a$prime, b$prime);
-                  }), Curry._3(Relude_Option.map2, (function (a, b) {
-                        return /* tuple */[
-                                a,
-                                b
-                              ];
-                      }), args, modes$1)));
+function eq(param, param$1) {
+  return doOp3((function (a, b) {
+                if (a === b) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              }), param, param$1);
 }
+
+function halt(param) {
+  return /* Halt */0;
+}
+
+function input(nextInput, state) {
+  var input$1 = Curry._1(nextInput, /* () */0);
+  var $$location = incrementAndGet(state);
+  var processed = StackSafeFuture$Aoc19.map((function (v) {
+          return set$1($$location, v, state);
+        }), input$1);
+  return /* AwaitInput */[processed];
+}
+
+function output(nextOutput, mode, state) {
+  var v = incrementAndGetWithMode(mode, state);
+  Curry._1(nextOutput, v);
+  return /* Continue */1;
+}
+
+function jumpIf(param, nonZero, state) {
+  var m2 = param[1];
+  var v = incrementAndGetWithMode(param[0], state);
+  var p = Relude_Function.flipCompose((function (param) {
+          return incrementAndGetWithMode(m2, param);
+        }), asNumber, state);
+  if (nonZero) {
+    if (v !== "0") {
+      state[/* pointer */1] = p;
+    }
+    
+  } else if (v === "0") {
+    state[/* pointer */1] = p;
+  }
+  return /* Continue */1;
+}
+
+var ComputerState = {
+  asNumber: asNumber,
+  fromNumber: fromNumber,
+  fromList: fromList$1,
+  get: get$1,
+  increment: increment,
+  incrementAndGet: incrementAndGet,
+  UnknownMode: UnknownMode,
+  position: position,
+  incrementAndGetWithMode: incrementAndGetWithMode,
+  set: set$1,
+  setFromNumber: setFromNumber,
+  doOp3: doOp3,
+  add: add,
+  mult: mult,
+  lt: lt,
+  eq: eq,
+  halt: halt,
+  input: input,
+  output: output,
+  jumpIf: jumpIf
+};
 
 function defaultNextInput(param) {
   var readline = Readline$Aoc19.make(/* () */0);
   return StackSafeFuture$Aoc19.tap((function (param) {
                   readline.close();
                   return /* () */0;
-                }))(StackSafeFuture$Aoc19.map(Caml_format.caml_int_of_string, Readline$Aoc19.question(readline, "input dear human\n")));
+                }))(Readline$Aoc19.question(readline, "input dear human\n"));
 }
 
 function defaultNextOutput(param) {
@@ -152,147 +225,307 @@ function defaultNextOutput(param) {
 function run($staropt$star, $staropt$star$1, intcode) {
   var nextInput = $staropt$star !== undefined ? $staropt$star : defaultNextInput;
   var nextOutput = $staropt$star$1 !== undefined ? $staropt$star$1 : defaultNextOutput;
-  var tape = Relude_Array.fromList(Relude_List.map((function (x) {
-                return /* record */[/* contents */x];
-              }))(intcode));
-  var program = function (pointer) {
-    var match = Relude_Array.at(pointer, tape);
-    var $$continue;
-    if (match !== undefined) {
-      var op = String(match[0]);
+  var state = fromList$1(intcode);
+  var program = function (_param) {
+    while(true) {
+      var op = incrementAndGet(state);
       var padded = Relude_String.repeat(5, "0") + op;
       var split = Relude_List.reverse(Relude_String.splitList("", padded));
-      var exit = 0;
+      var nextOp;
       if (split) {
         switch (split[0]) {
           case "1" :
-              var match$1 = split[1];
-              if (match$1 && match$1[0] === "0") {
-                $$continue = doOp3(tape, pointer, match$1[1], (function (prim, prim$1) {
-                        return prim + prim$1 | 0;
-                      }));
+              var match = split[1];
+              if (match && match[0] === "0") {
+                var match$1 = match[1];
+                if (match$1) {
+                  var match$2 = match$1[1];
+                  if (match$2) {
+                    var match$3 = match$2[1];
+                    if (match$3) {
+                      var partial_arg_000 = match$1[0];
+                      var partial_arg_001 = match$2[0];
+                      var partial_arg_002 = match$3[0];
+                      var partial_arg = /* tuple */[
+                        partial_arg_000,
+                        partial_arg_001,
+                        partial_arg_002
+                      ];
+                      nextOp = (function(partial_arg){
+                      return function (param) {
+                        return add(partial_arg, param);
+                      }
+                      }(partial_arg));
+                    } else {
+                      console.error("Unknown op", op);
+                      nextOp = halt;
+                    }
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "2" :
-              var match$2 = split[1];
-              if (match$2 && match$2[0] === "0") {
-                $$continue = doOp3(tape, pointer, match$2[1], Caml_int32.imul);
+              var match$4 = split[1];
+              if (match$4 && match$4[0] === "0") {
+                var match$5 = match$4[1];
+                if (match$5) {
+                  var match$6 = match$5[1];
+                  if (match$6) {
+                    var match$7 = match$6[1];
+                    if (match$7) {
+                      var partial_arg_000$1 = match$5[0];
+                      var partial_arg_001$1 = match$6[0];
+                      var partial_arg_002$1 = match$7[0];
+                      var partial_arg$1 = /* tuple */[
+                        partial_arg_000$1,
+                        partial_arg_001$1,
+                        partial_arg_002$1
+                      ];
+                      nextOp = (function(partial_arg$1){
+                      return function (param) {
+                        return mult(partial_arg$1, param);
+                      }
+                      }(partial_arg$1));
+                    } else {
+                      console.error("Unknown op", op);
+                      nextOp = halt;
+                    }
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "3" :
-              var match$3 = split[1];
-              if (match$3 && match$3[0] === "0") {
-                $$continue = readInput(tape, pointer, nextInput);
+              var match$8 = split[1];
+              if (match$8 && match$8[0] === "0") {
+                nextOp = (function (param) {
+                    return input(nextInput, param);
+                  });
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "4" :
-              var match$4 = split[1];
-              if (match$4 && match$4[0] === "0") {
-                $$continue = doOutput(tape, pointer, nextOutput);
+              var match$9 = split[1];
+              if (match$9 && match$9[0] === "0") {
+                var match$10 = match$9[1];
+                if (match$10) {
+                  var mode = match$10[0];
+                  nextOp = (function(mode){
+                  return function (param) {
+                    return output(nextOutput, mode, param);
+                  }
+                  }(mode));
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "5" :
-              var match$5 = split[1];
-              if (match$5 && match$5[0] === "0") {
-                $$continue = jumpIf(tape, pointer, match$5[1], true);
+              var match$11 = split[1];
+              if (match$11 && match$11[0] === "0") {
+                var match$12 = match$11[1];
+                if (match$12) {
+                  var match$13 = match$12[1];
+                  if (match$13) {
+                    var partial_arg_000$2 = match$12[0];
+                    var partial_arg_001$2 = match$13[0];
+                    var partial_arg$2 = /* tuple */[
+                      partial_arg_000$2,
+                      partial_arg_001$2
+                    ];
+                    nextOp = (function(partial_arg$2){
+                    return function (param) {
+                      return jumpIf(partial_arg$2, true, param);
+                    }
+                    }(partial_arg$2));
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "6" :
-              var match$6 = split[1];
-              if (match$6 && match$6[0] === "0") {
-                $$continue = jumpIf(tape, pointer, match$6[1], false);
+              var match$14 = split[1];
+              if (match$14 && match$14[0] === "0") {
+                var match$15 = match$14[1];
+                if (match$15) {
+                  var match$16 = match$15[1];
+                  if (match$16) {
+                    var partial_arg_000$3 = match$15[0];
+                    var partial_arg_001$3 = match$16[0];
+                    var partial_arg$3 = /* tuple */[
+                      partial_arg_000$3,
+                      partial_arg_001$3
+                    ];
+                    nextOp = (function(partial_arg$3){
+                    return function (param) {
+                      return jumpIf(partial_arg$3, false, param);
+                    }
+                    }(partial_arg$3));
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "7" :
-              var match$7 = split[1];
-              if (match$7 && match$7[0] === "0") {
-                $$continue = doOp3(tape, pointer, match$7[1], (function (a, b) {
-                        if (a < b) {
-                          return 1;
-                        } else {
-                          return 0;
-                        }
-                      }));
+              var match$17 = split[1];
+              if (match$17 && match$17[0] === "0") {
+                var match$18 = match$17[1];
+                if (match$18) {
+                  var match$19 = match$18[1];
+                  if (match$19) {
+                    var match$20 = match$19[1];
+                    if (match$20) {
+                      var partial_arg_000$4 = match$18[0];
+                      var partial_arg_001$4 = match$19[0];
+                      var partial_arg_002$2 = match$20[0];
+                      var partial_arg$4 = /* tuple */[
+                        partial_arg_000$4,
+                        partial_arg_001$4,
+                        partial_arg_002$2
+                      ];
+                      nextOp = (function(partial_arg$4){
+                      return function (param) {
+                        return lt(partial_arg$4, param);
+                      }
+                      }(partial_arg$4));
+                    } else {
+                      console.error("Unknown op", op);
+                      nextOp = halt;
+                    }
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "8" :
-              var match$8 = split[1];
-              if (match$8 && match$8[0] === "0") {
-                $$continue = doOp3(tape, pointer, match$8[1], (function (a, b) {
-                        if (a === b) {
-                          return 1;
-                        } else {
-                          return 0;
-                        }
-                      }));
+              var match$21 = split[1];
+              if (match$21 && match$21[0] === "0") {
+                var match$22 = match$21[1];
+                if (match$22) {
+                  var match$23 = match$22[1];
+                  if (match$23) {
+                    var match$24 = match$23[1];
+                    if (match$24) {
+                      var partial_arg_000$5 = match$22[0];
+                      var partial_arg_001$5 = match$23[0];
+                      var partial_arg_002$3 = match$24[0];
+                      var partial_arg$5 = /* tuple */[
+                        partial_arg_000$5,
+                        partial_arg_001$5,
+                        partial_arg_002$3
+                      ];
+                      nextOp = (function(partial_arg$5){
+                      return function (param) {
+                        return eq(partial_arg$5, param);
+                      }
+                      }(partial_arg$5));
+                    } else {
+                      console.error("Unknown op", op);
+                      nextOp = halt;
+                    }
+                  } else {
+                    console.error("Unknown op", op);
+                    nextOp = halt;
+                  }
+                } else {
+                  console.error("Unknown op", op);
+                  nextOp = halt;
+                }
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           case "9" :
-              var match$9 = split[1];
-              if (match$9 && match$9[0] === "9") {
-                $$continue = StackSafeFuture$Aoc19.pure(undefined);
+              var match$25 = split[1];
+              if (match$25 && match$25[0] === "9") {
+                nextOp = halt;
               } else {
-                exit = 1;
+                console.error("Unknown op", op);
+                nextOp = halt;
               }
               break;
           default:
-            exit = 1;
+            console.error("Unknown op", op);
+            nextOp = halt;
         }
       } else {
-        exit = 1;
-      }
-      if (exit === 1) {
         console.error("Unknown op", op);
-        $$continue = StackSafeFuture$Aoc19.pure(undefined);
+        nextOp = halt;
       }
-      
-    } else {
-      console.error("Invalid pointer", pointer);
-      $$continue = StackSafeFuture$Aoc19.pure(undefined);
-    }
-    return Curry._2(StackSafeFuture$Aoc19.flatMap, (function ($$continue) {
-                  if ($$continue !== undefined) {
-                    return program($$continue);
-                  } else {
-                    return StackSafeFuture$Aoc19.pure(/* () */0);
-                  }
-                }), $$continue);
+      var $$continue = Curry._1(nextOp, state);
+      if (typeof $$continue === "number") {
+        if ($$continue !== 0) {
+          _param = /* () */0;
+          continue ;
+        } else {
+          return StackSafeFuture$Aoc19.pure(/* () */0);
+        }
+      } else {
+        return Curry._2(StackSafeFuture$Aoc19.flatMap, program, $$continue[0]);
+      }
+    };
   };
-  var done_ = program(0);
+  var done_ = program(/* () */0);
   return StackSafeFuture$Aoc19.map((function (param) {
-                return Relude_Option.map((function (prim) {
-                              return prim[0];
-                            }), Relude_Array.head(tape));
+                state[/* pointer */1] = 0;
+                return get$1(state);
               }), done_);
 }
 
-exports.position = position;
-exports.immediate = immediate;
-exports.getVal = getVal;
-exports.op3 = op3;
-exports.args3 = args3;
-exports.args2 = args2;
-exports.doOp3 = doOp3;
-exports.readInput = readInput;
-exports.doOutput = doOutput;
-exports.jumpIf = jumpIf;
+var $great$great = Relude_Function.flipCompose;
+
+exports.$great$great = $great$great;
+exports.Memory = Memory;
+exports.ComputerState = ComputerState;
 exports.defaultNextInput = defaultNextInput;
 exports.defaultNextOutput = defaultNextOutput;
 exports.run = run;
-/* Relude_List Not a pure module */
+/* Map Not a pure module */

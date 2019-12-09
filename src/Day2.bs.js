@@ -3,6 +3,7 @@
 
 var Curry = require("bs-platform/lib/js/curry.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
+var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Intcode$Aoc19 = require("./Intcode.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
@@ -10,7 +11,7 @@ var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
 function runWithInput(i, a, b) {
-  var replaced = Relude_List.replaceAt(2, b, Relude_List.replaceAt(1, a, i));
+  var replaced = Relude_List.replaceAt(2, String(b), Relude_List.replaceAt(1, String(a), i));
   return Intcode$Aoc19.run(undefined, undefined, replaced);
 }
 
@@ -29,7 +30,8 @@ function findInput(input, desired) {
           var noun = nouns[0];
           var matchesDesired = (function(noun,ns,verb,vs){
           return function matchesDesired(a) {
-            if (a !== undefined && a === desired) {
+            var match = Caml_format.caml_int_of_string(a) === desired;
+            if (match) {
               return StackSafeFuture$Aoc19.pure(Caml_int32.imul(noun, 100) + verb | 0);
             } else {
               return search(ns, /* :: */[
@@ -55,7 +57,7 @@ function findInput(input, desired) {
   return search(viableInput, viableInput);
 }
 
-var input = InputLoader$Aoc19.commaSeparatedInts(2);
+var input = InputLoader$Aoc19.commaSeparated(2);
 
 StackSafeFuture$Aoc19.tap((function (param) {
           console.log("Processed to:", param);

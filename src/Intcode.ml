@@ -1,134 +1,148 @@
-let position a tape = Relude.Array.at !a tape |> Relude.Option.map ( ! )
+let ( >> ) = Relude.Function.flipCompose
 
-let immediate a = Some !a
+type instructionOutput =
+  | Halt
+  | Continue
+  | AwaitInput of unit StackSafeFuture.t
 
-let getVal mode a tape =
-  match mode with
-  | "0" -> position a tape
-  | "1" -> immediate a
-  | m ->
-      let _ = Js.Console.error2 "Unknown mode" m in
-      None
+module Memory = struct
+  module Map = Relude.Map.WithOrd (Relude.Int.Ord)
 
-let op3 tape modes op a b c =
-  let at = Relude.Array.at in
-  let open Relude.Option in
-  let modes = Relude.Tuple.fromListAtLeast2 modes in
-  let success =
-    flatMap
-      (fun (am, bm) ->
-        let l = getVal am a tape in
-        let r = getVal bm b tape in
-        let c = at !c tape in
-        let calculated = map2 op l r in
-        map2 (fun v state -> v := state) c calculated)
-      modes
-  in
-  isSome success
+  type t = string Map.t
 
-let args3 pointer tape =
-  ( Relude.Array.at (pointer + 1) tape,
-    Relude.Array.at (pointer + 2) tape,
-    Relude.Array.at (pointer + 3) tape )
-  |> Relude.Function.uncurry3 Relude.Option.tuple3
+  let fromList (list : string list) : t =
+    Relude.List.zipWithIndex list
+    |> Relude.List.foldLeft (fun map (v, i) -> Map.set i v map) (Map.make ())
 
-let args2 pointer tape =
-  (Relude.Array.at (pointer + 1) tape, Relude.Array.at (pointer + 2) tape)
-  |> Relude.Function.uncurry2 Relude.Option.tuple2
+  let get = Map.get
 
-let doOp3 tape pointer modes op =
-  let args = args3 pointer tape in
-  let _ =
-    args |> Relude.Option.map (Relude.Function.uncurry3 (op3 tape modes op))
-  in
-  Some (pointer + 4) |> StackSafeFuture.pure
+  let set = Map.set
 
-let readInput tape pointer nextInput =
-  let open Relude.Option in
-  let input = nextInput () in
-  let cell = Relude.Array.at (pointer + 1) tape |> map ( ! ) in
-  StackSafeFuture.map
-    (fun i ->
-      cell
-      |> flatMap (fun c -> Relude.Array.at c tape)
-      |> map (fun v -> v := i)
-      |> map (Relude.Function.const (pointer + 2)))
-    input
+  let setFromMemory m = Map.set (int_of_string m)
 
-let doOutput tape pointer nextOutput =
-  let open Relude.Option in
-  let cell = Relude.Array.at (pointer + 1) tape |> map ( ! ) in
-  cell
-  |> flatMap (fun c -> Relude.Array.at c tape)
-  |> map (fun v -> nextOutput !v)
-  |> map (Relude.Function.const (pointer + 2))
-  |> StackSafeFuture.pure
+  let getFromMemory m = Map.get (int_of_string m)
+end
 
-let jumpIf tape pointer modes nonZero =
-  let open Relude.Option in
-  let modes = Relude.Tuple.fromListAtLeast2 modes in
-  let args = args2 pointer tape in
-  map2 (fun a b -> (a, b)) args modes
-  |> flatMap (fun ((a, b), (am, bm)) ->
-         let a' = getVal am a tape in
-         let b' = getVal bm b tape in
-         map2
-           (fun v' p ->
-             match (nonZero, v') with
-             | false, 0 -> p
-             | false, _ | true, 0 -> pointer + 3
-             | _ -> p)
-           a' b')
-  |> StackSafeFuture.pure
+module ComputerState = struct
+  type t = {
+    mutable memory : Memory.t;
+    mutable pointer : int;
+    mutable relativeBase : int;
+  }
+
+  let asNumber = int_of_string
+
+  let fromNumber = string_of_int
+
+  let fromList (list : string list) =
+    { memory = Memory.fromList list; pointer = 0; relativeBase = 0 }
+
+  let get { memory; pointer } =
+    Memory.get pointer memory |> Relude.Option.getOrThrow
+
+  let increment state = state.pointer <- state.pointer + 1
+
+  let incrementAndGet state =
+    let v = get state in
+    increment state;
+    v
+
+  exception UnknownMode
+
+  let position p { memory } =
+    Memory.getFromMemory p memory |> Relude.Option.getOrThrow
+
+  let incrementAndGetWithMode mode state =
+    let v = incrementAndGet state in
+    match mode with
+    | "0" -> position v state
+    | "1" -> v
+    | _ -> raise UnknownMode
+
+  let set m v state = state.memory <- Memory.setFromMemory m v state.memory
+
+  let setFromNumber m v = set m (fromNumber v)
+
+  let doOp3 op (m1, m2, _) (state : t) =
+    let l = (incrementAndGetWithMode m1 >> asNumber) state in
+    let r = (incrementAndGetWithMode m2 >> asNumber) state in
+    let location = incrementAndGet state in
+    let value = op l r in
+    setFromNumber location value state;
+    Continue
+
+  let add = doOp3 ( + )
+
+  let mult = doOp3 ( * )
+
+  let lt = doOp3 (fun a b -> if a < b then 1 else 0)
+
+  let eq = doOp3 (fun a b -> if a = b then 1 else 0)
+
+  let halt _ = Halt
+
+  let input nextInput state =
+    let input = nextInput () in
+    let location = incrementAndGet state in
+    let processed =
+      input |> StackSafeFuture.map (fun v -> set location v state)
+    in
+    AwaitInput processed
+
+  let output nextOutput mode state =
+    let v = (incrementAndGetWithMode mode) state in
+    nextOutput v;
+    Continue
+
+  let jumpIf (m1, m2) nonZero state =
+    let v = (incrementAndGetWithMode m1) state in
+    let p = (incrementAndGetWithMode m2 >> asNumber) state in
+    ( match (nonZero, v) with
+    | false, "0" -> state.pointer <- p
+    | true, v when v != "0" -> state.pointer <- p
+    | _ -> () );
+    Continue
+end
 
 let defaultNextInput () =
   let readline = Readline.make () in
   Readline.question readline "input dear human\n"
-  |> StackSafeFuture.map int_of_string
   |> StackSafeFuture.tap (fun _ -> Readline.close readline)
 
-let defaultNextOutput : int -> unit = Js.log2 "Output: "
+let defaultNextOutput : string -> unit = Js.log2 "Output: "
 
 let run ?(nextInput = defaultNextInput) ?(nextOutput = defaultNextOutput)
-    intcode =
-  let tape =
-    Relude.List.map (fun x -> ref x) intcode |> Relude.Array.fromList
-  in
-  let rec program pointer =
-    let continue =
-      match tape |> Relude.Array.at pointer with
-      | Some op -> (
-          let op = !op |> string_of_int in
-          let padded = Relude.String.repeat 5 "0" ^ op in
-          let split =
-            Relude.String.splitList ~delimiter:"" padded |> Relude.List.reverse
-          in
-          match split with
-          | "1" :: "0" :: modes -> doOp3 tape pointer modes ( + )
-          | "2" :: "0" :: modes -> doOp3 tape pointer modes ( * )
-          | "3" :: "0" :: _ -> readInput tape pointer nextInput
-          | "4" :: "0" :: _ -> doOutput tape pointer nextOutput
-          | "5" :: "0" :: modes -> jumpIf tape pointer modes true
-          | "6" :: "0" :: modes -> jumpIf tape pointer modes false
-          | "7" :: "0" :: modes ->
-              doOp3 tape pointer modes (fun a b -> if a < b then 1 else 0)
-          | "8" :: "0" :: modes ->
-              doOp3 tape pointer modes (fun a b -> if a == b then 1 else 0)
-          | "9" :: "9" :: _ -> None |> StackSafeFuture.pure
-          | _ ->
-              let _ = Js.Console.error2 "Unknown op" op in
-              None |> StackSafeFuture.pure )
-      | None ->
-          let _ = Js.Console.error2 "Invalid pointer" pointer in
-          None |> StackSafeFuture.pure
+    (intcode : string list) =
+  let state = ComputerState.fromList intcode in
+  let rec program () =
+    let nextOp =
+      let op = ComputerState.incrementAndGet state in
+      let padded = Relude.String.repeat 5 "0" ^ op in
+      let split =
+        Relude.String.splitList ~delimiter:"" padded |> Relude.List.reverse
+      in
+      match split with
+      | "1" :: "0" :: m1 :: m2 :: m3 :: _ -> ComputerState.add (m1, m2, m3)
+      | "2" :: "0" :: m1 :: m2 :: m3 :: _ -> ComputerState.mult (m1, m2, m3)
+      | "3" :: "0" :: _ -> ComputerState.input nextInput
+      | "4" :: "0" :: mode :: _ -> ComputerState.output nextOutput mode
+      | "5" :: "0" :: m1 :: m2 :: _ -> ComputerState.jumpIf (m1, m2) true
+      | "6" :: "0" :: m1 :: m2 :: _ -> ComputerState.jumpIf (m1, m2) false
+      | "7" :: "0" :: m1 :: m2 :: m3 :: _ -> ComputerState.lt (m1, m2, m3)
+      | "8" :: "0" :: m1 :: m2 :: m3 :: _ -> ComputerState.eq (m1, m2, m3)
+      | "9" :: "9" :: _ -> ComputerState.halt
+      | _ ->
+          let _ = Js.Console.error2 "Unknown op" op in
+          ComputerState.halt
     in
-    continue
-    |> StackSafeFuture.flatMap (fun continue ->
-           match continue with
-           | Some pointer -> program pointer
-           | None -> StackSafeFuture.pure ())
+    let continue = nextOp state in
+    match continue with
+    | Halt -> StackSafeFuture.pure ()
+    | Continue -> program ()
+    | AwaitInput future -> future |> StackSafeFuture.flatMap program
   in
-  let done_ = program 0 in
+  let done_ = program () in
   done_
   |> StackSafeFuture.map (fun () ->
-         tape |> Relude.Array.head |> Relude.Option.map ( ! ))
+         state.pointer <- 0;
+         ComputerState.get state)

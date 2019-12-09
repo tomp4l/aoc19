@@ -1,5 +1,9 @@
 let runWithInput i a b =
-  let replaced = i |> Relude.List.replaceAt 1 a |> Relude.List.replaceAt 2 b in
+  let replaced =
+    i
+    |> Relude.List.replaceAt 1 (a |> string_of_int)
+    |> Relude.List.replaceAt 2 (b |> string_of_int)
+  in
   Intcode.run replaced
 
 let viableInput = Relude.List.makeWithIndex 100 Relude.Function.identity
@@ -9,9 +13,8 @@ let findInput input desired =
     match (nouns, verbs) with
     | noun :: ns, verb :: vs ->
         let matchesDesired a =
-          match a with
-          | Some v when v == desired ->
-              StackSafeFuture.pure ((noun * 100) + verb)
+          match int_of_string a == desired with
+          | true -> StackSafeFuture.pure ((noun * 100) + verb)
           | _ -> search ns (verb :: vs)
         in
         runWithInput input noun verb |> StackSafeFuture.flatMap matchesDesired
@@ -20,7 +23,7 @@ let findInput input desired =
   in
   search viableInput viableInput
 
-let input = InputLoader.commaSeparatedInts 2
+let input = InputLoader.commaSeparated 2
 
 let _ =
   input
