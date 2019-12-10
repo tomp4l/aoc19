@@ -34,37 +34,20 @@ function fromList(list) {
 }
 
 function get(i) {
-  var partial_arg = Curry._1($$Map.get, i);
-  return (function (param) {
-      return Relude_Function.flipCompose(partial_arg, (function (param) {
-                    return Relude_Option.getOrElse("0", param);
-                  }), param);
-    });
+  return Curry._2(Relude_Function.flipCompose, Curry._1($$Map.get, i), (function (param) {
+                return Relude_Option.getOrElse("0", param);
+              }));
 }
 
 var set = $$Map.set;
 
-function setFromMemory(m) {
-  return Curry._1($$Map.set, Caml_format.caml_int64_of_string(m));
-}
-
 function getFromMemory(m) {
-  var partial_arg = Curry._1($$Map.get, Caml_format.caml_int64_of_string(m));
-  return (function (param) {
-      return Relude_Function.flipCompose(partial_arg, (function (param) {
-                    return Relude_Option.getOrElse("0", param);
-                  }), param);
-    });
+  return Curry._2(Relude_Function.flipCompose, Curry._1($$Map.get, Caml_format.caml_int64_of_string(m)), (function (param) {
+                return Relude_Option.getOrElse("0", param);
+              }));
 }
 
-var Memory = {
-  $$Map: $$Map,
-  fromList: fromList,
-  get: get,
-  set: set,
-  setFromMemory: setFromMemory,
-  getFromMemory: getFromMemory
-};
+var UnknownMode = Caml_exceptions.create("Intcode-Aoc19.ComputerState.UnknownMode");
 
 var asNumber = Caml_format.caml_int64_of_string;
 
@@ -85,7 +68,7 @@ function fromList$1(list) {
 function get$1(param) {
   var memory = param[/* memory */0];
   var pointer = param[/* pointer */1];
-  return get(pointer)(memory);
+  return Curry._1(get(pointer), memory);
 }
 
 function increment(state) {
@@ -102,27 +85,21 @@ function incrementAndGet(state) {
   return v;
 }
 
-var UnknownMode = Caml_exceptions.create("Intcode-Aoc19.ComputerState.UnknownMode");
-
-function position(p, param) {
-  return getFromMemory(p)(param[/* memory */0]);
-}
-
-function relative(p, param) {
-  var memory = param[/* memory */0];
-  var relativeBase = param[/* relativeBase */2];
-  return get(Caml_int64.add(Caml_format.caml_int64_of_string(p), relativeBase))(memory);
-}
-
 function incrementAndGetWithMode(mode, state) {
   var v = incrementAndGet(state);
   switch (mode) {
     case "0" :
-        return position(v, state);
+        var p = v;
+        var param = state;
+        return Curry._1(getFromMemory(p), param[/* memory */0]);
     case "1" :
         return v;
     case "2" :
-        return relative(v, state);
+        var p$1 = v;
+        var param$1 = state;
+        var memory = param$1[/* memory */0];
+        var relativeBase = param$1[/* relativeBase */2];
+        return Curry._1(get(Caml_int64.add(Caml_format.caml_int64_of_string(p$1), relativeBase)), memory);
     default:
       throw UnknownMode;
   }
@@ -159,62 +136,8 @@ function doOp3(op, param, state) {
   return /* Continue */1;
 }
 
-function add(param, param$1) {
-  return doOp3(Caml_int64.add, param, param$1);
-}
-
-function mult(param, param$1) {
-  return doOp3(Caml_int64.mul, param, param$1);
-}
-
-function lt(param, param$1) {
-  return doOp3((function (a, b) {
-                if (Int64.compare(a, b) < 0) {
-                  return /* int64 */[
-                          /* hi */0,
-                          /* lo */1
-                        ];
-                } else {
-                  return /* int64 */[
-                          /* hi */0,
-                          /* lo */0
-                        ];
-                }
-              }), param, param$1);
-}
-
-function eq$1(param, param$1) {
-  return doOp3((function (a, b) {
-                if (Caml_int64.eq(a, b)) {
-                  return /* int64 */[
-                          /* hi */0,
-                          /* lo */1
-                        ];
-                } else {
-                  return /* int64 */[
-                          /* hi */0,
-                          /* lo */0
-                        ];
-                }
-              }), param, param$1);
-}
-
 function halt(param) {
   return /* Halt */0;
-}
-
-function input(nextInput, mode, state) {
-  var input$1 = Curry._1(nextInput, /* () */0);
-  var processed = StackSafeFuture$Aoc19.map((function (v) {
-          return incrementAndSetWithMode(mode, v, state);
-        }), input$1);
-  return /* AwaitInput */[processed];
-}
-
-function output(nextOutput, mode, state) {
-  var v = incrementAndGetWithMode(mode, state);
-  Curry._1(nextOutput, v);
-  return /* Continue */1;
 }
 
 function jumpIf(param, nonZero, state) {
@@ -233,38 +156,6 @@ function jumpIf(param, nonZero, state) {
   }
   return /* Continue */1;
 }
-
-function adjustBase(mode, state) {
-  var v = Relude_Function.flipCompose((function (param) {
-          return incrementAndGetWithMode(mode, param);
-        }), asNumber, state);
-  state[/* relativeBase */2] = Caml_int64.add(state[/* relativeBase */2], v);
-  return /* Continue */1;
-}
-
-var ComputerState = {
-  asNumber: asNumber,
-  fromNumber: Int64.to_string,
-  fromList: fromList$1,
-  get: get$1,
-  increment: increment,
-  incrementAndGet: incrementAndGet,
-  UnknownMode: UnknownMode,
-  position: position,
-  relative: relative,
-  incrementAndGetWithMode: incrementAndGetWithMode,
-  incrementAndSetWithMode: incrementAndSetWithMode,
-  doOp3: doOp3,
-  add: add,
-  mult: mult,
-  lt: lt,
-  eq: eq$1,
-  halt: halt,
-  input: input,
-  output: output,
-  jumpIf: jumpIf,
-  adjustBase: adjustBase
-};
 
 function defaultNextInput(param) {
   var readline = Readline$Aoc19.make(/* () */0);
@@ -310,7 +201,9 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       ];
                       nextOp = (function(partial_arg){
                       return function (param) {
-                        return add(partial_arg, param);
+                        var param$1 = partial_arg;
+                        var param$2 = param;
+                        return doOp3(Caml_int64.add, param$1, param$2);
                       }
                       }(partial_arg));
                     } else {
@@ -349,7 +242,9 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       ];
                       nextOp = (function(partial_arg$1){
                       return function (param) {
-                        return mult(partial_arg$1, param);
+                        var param$1 = partial_arg$1;
+                        var param$2 = param;
+                        return doOp3(Caml_int64.mul, param$1, param$2);
                       }
                       }(partial_arg$1));
                     } else {
@@ -377,7 +272,14 @@ function run($staropt$star, $staropt$star$1, intcode) {
                   var mode = match$9[0];
                   nextOp = (function(mode){
                   return function (param) {
-                    return input(nextInput, mode, param);
+                    var nextInput$1 = nextInput;
+                    var mode$1 = mode;
+                    var state = param;
+                    var input = Curry._1(nextInput$1, /* () */0);
+                    var processed = StackSafeFuture$Aoc19.map((function (v) {
+                            return incrementAndSetWithMode(mode$1, v, state);
+                          }), input);
+                    return /* AwaitInput */[processed];
                   }
                   }(mode));
                 } else {
@@ -397,7 +299,12 @@ function run($staropt$star, $staropt$star$1, intcode) {
                   var mode$1 = match$11[0];
                   nextOp = (function(mode$1){
                   return function (param) {
-                    return output(nextOutput, mode$1, param);
+                    var nextOutput$1 = nextOutput;
+                    var mode$2 = mode$1;
+                    var state = param;
+                    var v = incrementAndGetWithMode(mode$2, state);
+                    Curry._1(nextOutput$1, v);
+                    return /* Continue */1;
                   }
                   }(mode$1));
                 } else {
@@ -490,7 +397,21 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       ];
                       nextOp = (function(partial_arg$4){
                       return function (param) {
-                        return lt(partial_arg$4, param);
+                        var param$1 = partial_arg$4;
+                        var param$2 = param;
+                        return doOp3((function (a, b) {
+                                      if (Int64.compare(a, b) < 0) {
+                                        return /* int64 */[
+                                                /* hi */0,
+                                                /* lo */1
+                                              ];
+                                      } else {
+                                        return /* int64 */[
+                                                /* hi */0,
+                                                /* lo */0
+                                              ];
+                                      }
+                                    }), param$1, param$2);
                       }
                       }(partial_arg$4));
                     } else {
@@ -529,7 +450,21 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       ];
                       nextOp = (function(partial_arg$5){
                       return function (param) {
-                        return eq$1(partial_arg$5, param);
+                        var param$1 = partial_arg$5;
+                        var param$2 = param;
+                        return doOp3((function (a, b) {
+                                      if (Caml_int64.eq(a, b)) {
+                                        return /* int64 */[
+                                                /* hi */0,
+                                                /* lo */1
+                                              ];
+                                      } else {
+                                        return /* int64 */[
+                                                /* hi */0,
+                                                /* lo */0
+                                              ];
+                                      }
+                                    }), param$1, param$2);
                       }
                       }(partial_arg$5));
                     } else {
@@ -559,7 +494,13 @@ function run($staropt$star, $staropt$star$1, intcode) {
                         var partial_arg$6 = match$27[0];
                         nextOp = (function(partial_arg$6){
                         return function (param) {
-                          return adjustBase(partial_arg$6, param);
+                          var mode = partial_arg$6;
+                          var state = param;
+                          var v = Relude_Function.flipCompose((function (param) {
+                                  return incrementAndGetWithMode(mode, param);
+                                }), asNumber, state);
+                          state[/* relativeBase */2] = Caml_int64.add(state[/* relativeBase */2], v);
+                          return /* Continue */1;
                         }
                         }(partial_arg$6));
                       } else {
@@ -610,12 +551,5 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }), done_);
 }
 
-var $great$great = Relude_Function.flipCompose;
-
-exports.$great$great = $great$great;
-exports.Memory = Memory;
-exports.ComputerState = ComputerState;
-exports.defaultNextInput = defaultNextInput;
-exports.defaultNextOutput = defaultNextOutput;
 exports.run = run;
 /* Map Not a pure module */

@@ -26,8 +26,6 @@ module Memory = struct
 
   let set = Map.set
 
-  let setFromMemory m = Map.set (Int64.of_string m)
-
   let getFromMemory m =
     Map.get (Int64.of_string m) >> Relude.Option.getOrElse "0"
 end
@@ -38,6 +36,8 @@ module ComputerState = struct
     mutable pointer : Int64.t;
     mutable relativeBase : Int64.t;
   }
+
+  exception UnknownMode
 
   let asNumber = Int64.of_string
 
@@ -59,8 +59,6 @@ module ComputerState = struct
     let v = get state in
     increment state;
     v
-
-  exception UnknownMode
 
   let position p { memory } = Memory.getFromMemory p memory
 
