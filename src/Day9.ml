@@ -1,4 +1,4 @@
-let input = InputLoader.commaSeparated 5
+let input = InputLoader.commaSeparated 9
 
 let _ =
   input
@@ -8,4 +8,4 @@ let _ =
 let _ =
   input
   |> StackSafeFuture.map
-       (Intcode.run ~nextInput:(fun () -> StackSafeFuture.pure "5"))
+       (Intcode.run ~nextInput:(fun () -> StackSafeFuture.pure "2"))
