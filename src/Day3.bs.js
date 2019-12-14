@@ -5,9 +5,8 @@ var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
-var Relude_Map = require("relude/src/Relude_Map.bs.js");
-var Relude_Set = require("relude/src/Relude_Set.bs.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
+var Coord$Aoc19 = require("./lib/Coord.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
@@ -128,41 +127,13 @@ function pathFromDirections(directions) {
               ])(directions);
 }
 
-function compare(a, b) {
-  var i = Curry._2(Relude_Int.compare, a[0], b[0]);
-  if (i !== -718572442) {
-    return i;
-  } else {
-    return Curry._2(Relude_Int.compare, a[1], b[1]);
-  }
-}
-
-function eq(a, b) {
-  return compare(a, b) === /* equal_to */-718572442;
-}
-
-var CoordOrd = {
-  compare: compare,
-  eq: eq
-};
-
-var CoordSet = Relude_Set.WithOrd({
-      eq: eq,
-      compare: compare
-    });
-
-var CoordMap = Relude_Map.WithOrd({
-      eq: eq,
-      compare: compare
-    });
-
 function getCrossings(a, b) {
-  var aSet = Curry._1(CoordSet.fromList, a);
-  var bSet = Curry._1(CoordSet.fromList, b);
-  return Curry._2(CoordSet.remove, /* tuple */[
+  var aSet = Curry._1(Coord$Aoc19.CoordSet.fromList, a);
+  var bSet = Curry._1(Coord$Aoc19.CoordSet.fromList, b);
+  return Curry._2(Coord$Aoc19.CoordSet.remove, /* tuple */[
               0,
               0
-            ], Curry._2(CoordSet.intersect, aSet, bSet));
+            ], Curry._2(Coord$Aoc19.CoordSet.intersect, aSet, bSet));
 }
 
 function manhattenDistance(coord) {
@@ -188,9 +159,9 @@ function addDistanceToPath(path) {
 function addDistancesToMap(path, map) {
   return Relude_List.foldLeft((function (map, coordWithDistance) {
                   var coord = coordWithDistance[0];
-                  var match = Curry._2(CoordMap.get, coord, map);
+                  var match = Curry._2(Coord$Aoc19.CoordMap.get, coord, map);
                   if (match !== undefined) {
-                    return Curry._3(CoordMap.set, coord, match + coordWithDistance[1] | 0, map);
+                    return Curry._3(Coord$Aoc19.CoordMap.set, coord, match + coordWithDistance[1] | 0, map);
                   } else {
                     return map;
                   }
@@ -198,14 +169,14 @@ function addDistancesToMap(path, map) {
 }
 
 function findClosestIntersection(pathA, pathB) {
-  var intersections = Curry._1(CoordSet.toList, getCrossings(pathA, pathB));
+  var intersections = Curry._1(Coord$Aoc19.CoordSet.toList, getCrossings(pathA, pathB));
   var intersectionsWithDistance = Belt_List.zip(intersections, Belt_List.make(Belt_List.length(intersections), 0));
-  var intersectionsMap = Curry._1(CoordMap.fromList, intersectionsWithDistance);
+  var intersectionsMap = Curry._1(Coord$Aoc19.CoordMap.fromList, intersectionsWithDistance);
   var pathADistances = addDistanceToPath(pathA);
   var pathBDistances = addDistanceToPath(pathB);
   var intersectionsMap$1 = addDistancesToMap(pathADistances, intersectionsMap);
   var intersectionsMap$2 = addDistancesToMap(pathBDistances, intersectionsMap$1);
-  return Curry._1(Relude_List_Specializations.Int.min, Curry._1(CoordMap.values, intersectionsMap$2));
+  return Curry._1(Relude_List_Specializations.Int.min, Curry._1(Coord$Aoc19.CoordMap.values, intersectionsMap$2));
 }
 
 var partial_arg = Relude_List.map(pathFromDirections);
@@ -226,7 +197,7 @@ StackSafeFuture$Aoc19.tap((function (a) {
           if (a) {
             var match = a[1];
             if (match && !match[1]) {
-              console.log("Closest to origin", manhattenDistance(getClosestToOrigin(Curry._1(CoordSet.toList, getCrossings(a[0], match[0])))));
+              console.log("Closest to origin", manhattenDistance(getClosestToOrigin(Curry._1(Coord$Aoc19.CoordSet.toList, getCrossings(a[0], match[0])))));
               return /* () */0;
             } else {
               return /* () */0;
@@ -256,9 +227,6 @@ exports.stringToDirection = stringToDirection;
 exports.distance = distance;
 exports.pathFromDirection = pathFromDirection;
 exports.pathFromDirections = pathFromDirections;
-exports.CoordOrd = CoordOrd;
-exports.CoordSet = CoordSet;
-exports.CoordMap = CoordMap;
 exports.getCrossings = getCrossings;
 exports.manhattenDistance = manhattenDistance;
 exports.getClosestToOrigin = getClosestToOrigin;
@@ -266,4 +234,4 @@ exports.addDistanceToPath = addDistanceToPath;
 exports.addDistancesToMap = addDistancesToMap;
 exports.findClosestIntersection = findClosestIntersection;
 exports.input = input;
-/* CoordSet Not a pure module */
+/* input Not a pure module */

@@ -1,8 +1,8 @@
+open Coord
+
 type direction = Right of int | Up of int | Left of int | Down of int
 
 exception InvalidDirection of string
-
-type coord = int * int
 
 let ( >> ) = Relude.Function.Infix.( >> )
 
@@ -47,22 +47,6 @@ let pathFromDirections (directions : direction list) : coord list =
       in
       Relude.List.concat path acc)
     init directions
-
-module CoordOrd = struct
-  type t = coord
-
-  let compare a b =
-    let a1, a2 = a in
-    let b1, b2 = b in
-    match Relude.Int.compare a1 b1 with
-    | `equal_to -> Relude.Int.compare a2 b2
-    | i -> i
-
-  let eq a b = compare a b == `equal_to
-end
-
-module CoordSet = Relude.Set.WithOrd (CoordOrd)
-module CoordMap = Relude.Map.WithOrd (CoordOrd)
 
 let getCrossings (a : coord list) (b : coord list) =
   let aSet = CoordSet.fromList a in

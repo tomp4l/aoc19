@@ -3,11 +3,24 @@
 
 var Fs = require("fs");
 var Curry = require("bs-platform/lib/js/curry.js");
+var Js_dict = require("bs-platform/lib/js/js_dict.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
+var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var StackSafeFuture$Aoc19 = require("./StackSafeFuture.bs.js");
+
+var isJest = Relude_Option.isSome(Js_dict.get(process.env, "JEST_WORKER_ID"));
+
+function runIfNotJest(f) {
+  if (isJest) {
+    return 0;
+  } else {
+    Curry._1(f, /* () */0);
+    return /* () */0;
+  }
+}
 
 function loadDay(number) {
   var filename = __dirname + ("/../input/day" + (String(number) + ".txt"));
@@ -51,6 +64,8 @@ function commaSeparatedInts(param) {
   return partial_arg$2(commaSeparated, mapToInts, param);
 }
 
+exports.isJest = isJest;
+exports.runIfNotJest = runIfNotJest;
 exports.loadDay = loadDay;
 exports.separated = separated;
 exports.newlineSeparated = newlineSeparated;
@@ -58,4 +73,4 @@ exports.commaSeparated = commaSeparated;
 exports.mapToInts = mapToInts;
 exports.newlineSeparatedInts = newlineSeparatedInts;
 exports.commaSeparatedInts = commaSeparatedInts;
-/* partial_arg Not a pure module */
+/* isJest Not a pure module */
