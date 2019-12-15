@@ -58,25 +58,7 @@ module Ship = struct
 
   let totalPainted : t -> int = CoordMap.keys >> Relude.List.length
 
-  let drawShip ship =
-    let points = CoordMap.keys ship in
-    let xs, ys = Relude.List.unzip points in
-    let minX = Relude.List.Int.min xs |> Relude.Option.getOrElse 0 in
-    let maxX = Relude.List.Int.max xs |> Relude.Option.getOrElse 0 in
-    let minY = Relude.List.Int.min ys |> Relude.Option.getOrElse 0 in
-    let maxY = Relude.List.Int.max ys |> Relude.Option.getOrElse 0 in
-    let rec loopY y =
-      if y <= maxY then (
-        let rec loopX x =
-          if x <= maxX then (
-            write (get (x, y) ship |> colorToDisplay);
-            loopX (x + 1) )
-        in
-        loopX minX;
-        write "\n";
-        loopY (y + 1) )
-    in
-    loopY minY
+  let drawShip = Coord.output colorToDisplay Black
 end
 
 module Robot = struct

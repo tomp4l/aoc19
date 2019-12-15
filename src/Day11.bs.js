@@ -11,7 +11,6 @@ var Caml_exceptions = require("bs-platform/lib/js/caml_exceptions.js");
 var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
-var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
 function rotate(d, r) {
   switch (d) {
@@ -150,45 +149,8 @@ function totalPainted(param) {
   return Relude_Function.flipCompose(partial_arg, Relude_List.length, param);
 }
 
-function drawShip(ship) {
-  var points = Curry._1(Coord$Aoc19.CoordMap.keys, ship);
-  var match = Relude_List.unzip(points);
-  var ys = match[1];
-  var xs = match[0];
-  var minX = Relude_Option.getOrElse(0, Curry._1(Relude_List_Specializations.Int.min, xs));
-  var maxX = Relude_Option.getOrElse(0, Curry._1(Relude_List_Specializations.Int.max, xs));
-  var minY = Relude_Option.getOrElse(0, Curry._1(Relude_List_Specializations.Int.min, ys));
-  var maxY = Relude_Option.getOrElse(0, Curry._1(Relude_List_Specializations.Int.max, ys));
-  var _y = minY;
-  while(true) {
-    var y = _y;
-    if (y <= maxY) {
-      var loopX = (function(y){
-      return function loopX(_x) {
-        while(true) {
-          var x = _x;
-          if (x <= maxX) {
-            var c = get(/* tuple */[
-                    x,
-                    y
-                  ])(ship);
-            process.stdout.write(c ? " " : "#");
-            _x = x + 1 | 0;
-            continue ;
-          } else {
-            return 0;
-          }
-        };
-      }
-      }(y));
-      loopX(minX);
-      process.stdout.write("\n");
-      _y = y + 1 | 0;
-      continue ;
-    } else {
-      return 0;
-    }
-  };
+function drawShip(param) {
+  return Coord$Aoc19.output(colorToDisplay, /* Black */1, param);
 }
 
 var Ship = {
