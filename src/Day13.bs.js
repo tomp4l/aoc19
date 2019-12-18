@@ -144,6 +144,8 @@ function runGame(quarters, input) {
   };
   var nextInput = function (param) {
     var match = ballPaddleXs(screen[0]);
+    Coord$Aoc19.output(spriteToDisplay, /* Empty */0, screen[0]);
+    console.log("Score: ", score[0]);
     var match$1 = Curry._2(Relude_Int.compare, match[0], match[1]);
     return StackSafeFuture$Aoc19.pure(match$1 !== 159039494 ? (
                   match$1 >= 939214151 ? "-1" : "0"
