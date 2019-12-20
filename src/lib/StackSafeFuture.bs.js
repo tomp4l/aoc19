@@ -119,6 +119,21 @@ function pure(v) {
               }));
 }
 
+function never(param) {
+  return make((function (param) {
+                return /* () */0;
+              }));
+}
+
+function delay(t, f) {
+  return make((function (resolve) {
+                setTimeout((function (param) {
+                        return Curry._1(resolve, Curry._1(f, /* () */0));
+                      }), t);
+                return /* () */0;
+              }));
+}
+
 var Functor = {
   map: map
 };
@@ -223,6 +238,8 @@ exports.make = make;
 exports.map = map;
 exports.tap = tap;
 exports.pure = pure;
+exports.never = never;
+exports.delay = delay;
 exports.flipMap = flipMap;
 exports.$$void = $$void;
 exports.voidRight = voidRight;

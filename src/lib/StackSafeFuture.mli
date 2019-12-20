@@ -16,6 +16,10 @@ val tap : ('a -> unit) -> 'a t -> 'a t
 
 val pure : 'a -> 'a t
 
+val never : unit -> 'a t
+
+val delay : int -> (unit -> 'a) -> 'a t
+
 val flipMap : 'a Functor.t -> ('a -> 'b) -> 'b Functor.t
 
 val void : 'a Functor.t -> unit Functor.t

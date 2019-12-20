@@ -73,6 +73,12 @@ let tap f =
 
 let pure v = make (fun resolve -> resolve v)
 
+let never () = make (fun _ -> ())
+
+external setTimeout : (unit -> unit) -> int -> unit = "setTimeout" [@@bs.val]
+
+let delay t f = make (fun resolve -> setTimeout (fun () -> resolve (f ())) t)
+
 module Functor : BsAbstract.Interface.FUNCTOR with type 'a t = 'a t = struct
   type nonrec 'a t = 'a t
 
