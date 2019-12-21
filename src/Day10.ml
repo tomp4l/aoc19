@@ -132,14 +132,14 @@ let bigFuckingLaser origin space desiredCount =
   in
   next space firstTarget 1
 
+let input = InputLoader.loadDay 10
+
 let _ =
-  InputLoader.runIfNotJest (fun () ->
-      let input = InputLoader.loadDay 10 in
-      input
-      |> StackSafeFuture.map Space.fromString
-      |> StackSafeFuture.map (fun space -> (space, space |> findBestAsteroid))
-      |> StackSafeFuture.tap (fun (space, a) ->
-             a |> visibleCount space |> Js.log2 "Best asteroid")
-      |> StackSafeFuture.tap (fun (space, a) ->
-             let x, y = bigFuckingLaser a space 200 in
-             Js.log2 "200th to be boomed" ((x * 100) + y)))
+  input
+  |> StackSafeFuture.map Space.fromString
+  |> StackSafeFuture.map (fun space -> (space, space |> findBestAsteroid))
+  |> StackSafeFuture.tap (fun (space, a) ->
+         a |> visibleCount space |> Js.log2 "Best asteroid")
+  |> StackSafeFuture.tap (fun (space, a) ->
+         let x, y = bigFuckingLaser a space 200 in
+         Js.log2 "200th to be boomed" ((x * 100) + y))

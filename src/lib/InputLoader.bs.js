@@ -13,29 +13,32 @@ var StackSafeFuture$Aoc19 = require("./StackSafeFuture.bs.js");
 
 var isJest = Relude_Option.isSome(Js_dict.get(process.env, "JEST_WORKER_ID"));
 
-function runIfNotJest(f) {
+function resolveIfNotJest(p) {
   if (isJest) {
-    return 0;
+    return StackSafeFuture$Aoc19.never(/* () */0);
   } else {
-    Curry._1(f, /* () */0);
-    return /* () */0;
+    return p;
   }
 }
 
 function loadDay(number) {
   var filename = __dirname + ("/../input/day" + (String(number) + ".txt"));
-  return StackSafeFuture$Aoc19.make((function (resolve) {
-                Fs.readFile(filename, "utf-8", (function (param, data) {
-                        return Curry._1(resolve, data);
-                      }));
-                return /* () */0;
-              }));
+  return resolveIfNotJest(StackSafeFuture$Aoc19.make((function (resolve) {
+                    Fs.readFile(filename, "utf-8", (function (param, data) {
+                            return Curry._1(resolve, data);
+                          }));
+                    return /* () */0;
+                  })));
 }
 
 function separated(delimiter, number) {
   return StackSafeFuture$Aoc19.map((function (param) {
                 return Relude_String.splitList(delimiter, param);
               }), loadDay(number));
+}
+
+function charList(param) {
+  return separated("", param);
 }
 
 function newlineSeparated(param) {
@@ -54,23 +57,31 @@ function mapToInts(param) {
 
 var partial_arg$1 = Relude_Function.Infix.$great$great;
 
-function newlineSeparatedInts(param) {
-  return partial_arg$1(newlineSeparated, mapToInts, param);
+function intList(param) {
+  return partial_arg$1(charList, mapToInts, param);
 }
 
 var partial_arg$2 = Relude_Function.Infix.$great$great;
 
+function newlineSeparatedInts(param) {
+  return partial_arg$2(newlineSeparated, mapToInts, param);
+}
+
+var partial_arg$3 = Relude_Function.Infix.$great$great;
+
 function commaSeparatedInts(param) {
-  return partial_arg$2(commaSeparated, mapToInts, param);
+  return partial_arg$3(commaSeparated, mapToInts, param);
 }
 
 exports.isJest = isJest;
-exports.runIfNotJest = runIfNotJest;
+exports.resolveIfNotJest = resolveIfNotJest;
 exports.loadDay = loadDay;
 exports.separated = separated;
+exports.charList = charList;
 exports.newlineSeparated = newlineSeparated;
 exports.commaSeparated = commaSeparated;
 exports.mapToInts = mapToInts;
+exports.intList = intList;
 exports.newlineSeparatedInts = newlineSeparatedInts;
 exports.commaSeparatedInts = commaSeparatedInts;
 /* isJest Not a pure module */

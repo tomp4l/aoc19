@@ -246,22 +246,21 @@ function bigFuckingLaser(origin, space, desiredCount) {
   };
 }
 
-InputLoader$Aoc19.runIfNotJest((function (param) {
-        var input = InputLoader$Aoc19.loadDay(10);
-        return StackSafeFuture$Aoc19.tap((function (param) {
-                        var match = bigFuckingLaser(param[1], param[0], 200);
-                        console.log("200th to be boomed", Caml_int32.imul(match[0], 100) + match[1] | 0);
-                        return /* () */0;
-                      }))(StackSafeFuture$Aoc19.tap((function (param) {
-                            console.log("Best asteroid", visibleCount(param[0], param[1]));
-                            return /* () */0;
-                          }))(StackSafeFuture$Aoc19.map((function (space) {
-                              return /* tuple */[
-                                      space,
-                                      findBestAsteroid(space)
-                                    ];
-                            }), StackSafeFuture$Aoc19.map(fromString, input))));
-      }));
+var input = InputLoader$Aoc19.loadDay(10);
+
+StackSafeFuture$Aoc19.tap((function (param) {
+          var match = bigFuckingLaser(param[1], param[0], 200);
+          console.log("200th to be boomed", Caml_int32.imul(match[0], 100) + match[1] | 0);
+          return /* () */0;
+        }))(StackSafeFuture$Aoc19.tap((function (param) {
+              console.log("Best asteroid", visibleCount(param[0], param[1]));
+              return /* () */0;
+            }))(StackSafeFuture$Aoc19.map((function (space) {
+                return /* tuple */[
+                        space,
+                        findBestAsteroid(space)
+                      ];
+              }), StackSafeFuture$Aoc19.map(fromString, input))));
 
 var $great$great = Relude_Function.flipCompose;
 
@@ -277,4 +276,5 @@ exports.minimumAngle = minimumAngle;
 exports.findFirstTarget = findFirstTarget;
 exports.findNextTarget = findNextTarget;
 exports.bigFuckingLaser = bigFuckingLaser;
-/*  Not a pure module */
+exports.input = input;
+/* input Not a pure module */
