@@ -71,8 +71,8 @@ module Cabinet = struct
     in
     let nextInput () =
       let xBall, xPaddle = Screen.ballPaddleXs !screen in
-      Screen.output !screen;
-      Js.log2 "Score: " !score;
+      (* Screen.output !screen; *)
+      (* Js.log2 "Score: " !score; *)
       let input =
         match Relude.Int.compare xBall xPaddle with
         | `equal_to -> "0"
