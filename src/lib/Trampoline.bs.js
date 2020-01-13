@@ -8,6 +8,10 @@ var Relude_Extensions_Monad = require("relude/src/extensions/Relude_Extensions_M
 var Relude_Extensions_Functor = require("relude/src/extensions/Relude_Extensions_Functor.bs.js");
 var Relude_Extensions_Applicative = require("relude/src/extensions/Relude_Extensions_Applicative.bs.js");
 
+function more(thunk) {
+  return /* More */Block.__(1, [thunk]);
+}
+
 function flatMap(f, trampoline) {
   switch (trampoline.tag | 0) {
     case /* Done */0 :
@@ -198,6 +202,7 @@ var when_ = include$3.when_;
 
 var unless = include$3.unless;
 
+exports.more = more;
 exports.resume = resume;
 exports.run = run;
 exports.map = map;

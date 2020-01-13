@@ -143,10 +143,8 @@ function make(c) {
             ], c, Curry._1(Coord$Aoc19.CoordMap.make, /* () */0));
 }
 
-var partial_arg = Coord$Aoc19.CoordMap.keys;
-
 function totalPainted(param) {
-  return Relude_Function.flipCompose(partial_arg, Relude_List.length, param);
+  return Relude_Function.flipCompose(Coord$Aoc19.CoordMap.keys, Relude_List.length, param);
 }
 
 function drawShip(param) {
@@ -161,57 +159,61 @@ var Ship = {
   drawShip: drawShip
 };
 
-var initial = /* record */[
-  /* position : tuple */[
+var initial = {
+  position: /* tuple */[
     0,
     0
   ],
-  /* direction : Up */0,
-  /* isPainting */true
-];
+  direction: /* Up */0,
+  isPainting: true
+};
 
 function doPaint(color, robot, ship) {
   return /* tuple */[
-          Curry._3(paint, robot[/* position */0], color, ship),
-          /* record */[
-            /* position */robot[/* position */0],
-            /* direction */robot[/* direction */1],
-            /* isPainting */false
-          ]
+          Curry._3(paint, robot.position, color, ship),
+          {
+            position: robot.position,
+            direction: robot.direction,
+            isPainting: false
+          }
         ];
 }
 
 function doRotateAndMove(rotation, robot) {
-  var nextDirection = rotate(robot[/* direction */1], rotation);
-  var nextPosition = move(robot[/* position */0], nextDirection);
-  return /* record */[
-          /* position */nextPosition,
-          /* direction */nextDirection,
-          /* isPainting */true
-        ];
+  var nextDirection = rotate(robot.direction, rotation);
+  var nextPosition = move(robot.position, nextDirection);
+  return {
+          position: nextPosition,
+          direction: nextDirection,
+          isPainting: true
+        };
 }
 
 function paintShip(start, input) {
-  var robot = /* record */[/* contents */initial];
-  var ship = /* record */[/* contents */make(start)];
+  var robot = {
+    contents: initial
+  };
+  var ship = {
+    contents: make(start)
+  };
   var nextInput = function (param) {
-    var match = robot[0];
-    var c = get(match[/* position */0])(ship[0]);
+    var match = robot.contents;
+    var c = get(match.position)(ship.contents);
     return StackSafeFuture$Aoc19.pure(String(c ? 0 : 1));
   };
   var nextOutput = function (string) {
     var v = Caml_format.caml_int_of_string(string);
-    var match = robot[0];
-    var match$1 = match[/* isPainting */2] ? doPaint(intToColor(v), robot[0], ship[0]) : /* tuple */[
-        ship[0],
-        doRotateAndMove(intToRotation(v), robot[0])
+    var match = robot.contents;
+    var match$1 = match.isPainting ? doPaint(intToColor(v), robot.contents, ship.contents) : /* tuple */[
+        ship.contents,
+        doRotateAndMove(intToRotation(v), robot.contents)
       ];
-    ship[0] = match$1[0];
-    robot[0] = match$1[1];
+    ship.contents = match$1[0];
+    robot.contents = match$1[1];
     return /* () */0;
   };
   return StackSafeFuture$Aoc19.map((function (param) {
-                return ship[0];
+                return ship.contents;
               }), Intcode$Aoc19.run(nextInput, nextOutput, input));
 }
 
@@ -240,7 +242,7 @@ StackSafeFuture$Aoc19.tap(drawShip)(StackSafeFuture$Aoc19.tap((function (param) 
                             return paintShip(/* Black */1, param);
                           }), input))))));
 
-var CoordMap = 0;
+var CoordMap = /* alias */0;
 
 var $great$great = Relude_Function.flipCompose;
 

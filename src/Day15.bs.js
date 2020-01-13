@@ -172,61 +172,77 @@ function findOxygenSystem($staropt$star, $staropt$star$1, findSensor, input) {
   var display = $staropt$star !== undefined ? $staropt$star : false;
   var delay = $staropt$star$1 !== undefined ? $staropt$star$1 : 0;
   return StackSafeFuture$Aoc19.make((function (resolve) {
-                var position = /* record */[/* contents : tuple */[
+                var position = {
+                  contents: /* tuple */[
                     0,
                     0
-                  ]];
-                var lastMove = /* record */[/* contents : East */2];
-                var ship = /* record */[/* contents */make(position[0], /* Floor */2)];
-                var history = /* record */[/* contents : [] */0];
-                var totalDistance = /* record */[/* contents */0];
-                var maxDistance = /* record */[/* contents */0];
-                var found = /* record */[/* contents */false];
-                var finished = /* record */[/* contents */false];
+                  ]
+                };
+                var lastMove = {
+                  contents: /* East */2
+                };
+                var ship = {
+                  contents: make(position.contents, /* Floor */2)
+                };
+                var history = {
+                  contents: /* [] */0
+                };
+                var totalDistance = {
+                  contents: 0
+                };
+                var maxDistance = {
+                  contents: 0
+                };
+                var found = {
+                  contents: false
+                };
+                var finished = {
+                  contents: false
+                };
                 var nextInput = function (param) {
-                  var match = finished[0];
+                  var match = finished.contents;
                   if (match) {
                     return StackSafeFuture$Aoc19.never(/* () */0);
                   } else if (delay !== 0) {
                     return StackSafeFuture$Aoc19.delay(delay, (function (param) {
-                                  return String(directionToInt(lastMove[0]));
+                                  return String(directionToInt(lastMove.contents));
                                 }));
                   } else {
-                    return StackSafeFuture$Aoc19.pure(String(directionToInt(lastMove[0])));
+                    return StackSafeFuture$Aoc19.pure(String(directionToInt(lastMove.contents)));
                   }
                 };
                 var nextOutput = function (v) {
                   switch (v) {
                     case "0" :
-                        var attempt = move(position[0], lastMove[0]);
-                        ship[0] = Curry._3(reveal, attempt, /* Wall */1, ship[0]);
-                        history[0] = Relude_List.tailOrEmpty(history[0]);
+                        var attempt = move(position.contents, lastMove.contents);
+                        ship.contents = Curry._3(reveal, attempt, /* Wall */1, ship.contents);
+                        history.contents = Relude_List.tailOrEmpty(history.contents);
                         break;
                     case "1" :
-                        position[0] = move(position[0], lastMove[0]);
-                        var match = get(position[0])(ship[0]);
+                        position.contents = move(position.contents, lastMove.contents);
+                        var match = get(position.contents)(ship.contents);
                         if (match !== 0) {
-                          totalDistance[0] = totalDistance[0] - 1 | 0;
+                          totalDistance.contents = totalDistance.contents - 1 | 0;
                         } else {
-                          totalDistance[0] = totalDistance[0] + 1 | 0;
+                          totalDistance.contents = totalDistance.contents + 1 | 0;
                         }
-                        ship[0] = Curry._3(reveal, position[0], /* Floor */2, ship[0]);
+                        ship.contents = Curry._3(reveal, position.contents, /* Floor */2, ship.contents);
                         break;
                     case "2" :
-                        position[0] = move(position[0], lastMove[0]);
-                        ship[0] = Curry._3(reveal, position[0], /* OxygenSystem */3, ship[0]);
+                        position.contents = move(position.contents, lastMove.contents);
+                        ship.contents = Curry._3(reveal, position.contents, /* OxygenSystem */3, ship.contents);
                         if (findSensor) {
-                          finished[0] = true;
-                          Curry._1(resolve, totalDistance[0] + 1 | 0);
-                        } else if (found[0]) {
-                          finished[0] = true;
-                          Curry._1(resolve, maxDistance[0]);
+                          finished.contents = true;
+                          Curry._1(resolve, totalDistance.contents + 1 | 0);
+                        } else if (found.contents) {
+                          finished.contents = true;
+                          Curry._1(resolve, maxDistance.contents);
                         } else {
-                          ship[0] = make(position[0], /* OxygenSystem */3);
-                          history[0] = /* [] */0;
-                          totalDistance[0] = 0;
-                          maxDistance[0] = 0;
-                          found[0] = true;
+                          ship.contents = make(position.contents, /* OxygenSystem */3);
+                          history.contents = /* [] */0;
+                          totalDistance.contents = 0;
+                          maxDistance.contents = 0;
+                          found.contents = true;
                         }
                         break;
                     default:
@@ -235,14 +251,14 @@ function findOxygenSystem($staropt$star, $staropt$star$1, findSensor, input) {
                             v
                           ];
                   }
-                  var match$1 = nextDirection(ship[0], position[0], history[0]);
-                  lastMove[0] = match$1[0];
-                  history[0] = match$1[1];
-                  maxDistance[0] = Curry._2(Relude_Int.max, maxDistance[0], totalDistance[0]);
+                  var match$1 = nextDirection(ship.contents, position.contents, history.contents);
+                  lastMove.contents = match$1[0];
+                  history.contents = match$1[1];
+                  maxDistance.contents = Curry._2(Relude_Int.max, maxDistance.contents, totalDistance.contents);
                   if (display) {
                     console.log("");
-                    Coord$Aoc19.output(roomToDisplay, /* Unknown */0, ship[0]);
-                    console.log("distance", totalDistance[0]);
+                    Coord$Aoc19.output(roomToDisplay, /* Unknown */0, ship.contents);
+                    console.log("distance", totalDistance.contents);
                   }
                   return /* () */0;
                 };
@@ -273,7 +289,7 @@ StackSafeFuture$Aoc19.tap((function (param) {
             return findOxygenSystem(undefined, undefined, false, param);
           }), input));
 
-var CoordMap = 0;
+var CoordMap = /* alias */0;
 
 var $great$great = Relude_Function.flipCompose;
 

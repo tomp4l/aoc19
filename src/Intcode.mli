@@ -1,5 +1,5 @@
 val run :
-  ?nextInput:(unit -> string Aoc19.StackSafeFuture.t) ->
+  ?nextInput:(unit -> string StackSafeFuture.t) ->
   ?nextOutput:(string -> unit) ->
   string list ->
-  string Aoc19.StackSafeFuture.t
+  string StackSafeFuture.t

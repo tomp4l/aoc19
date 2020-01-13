@@ -14,36 +14,38 @@ var Relude_Function = require("relude/src/Relude_Function.bs.js");
 var Relude_Ordering = require("relude/src/Relude_Ordering.bs.js");
 var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
-var id = /* record */[/* contents */0];
+var id = {
+  contents: 0
+};
 
 function make(position) {
-  id[0] = id[0] + 1 | 0;
-  return /* record */[
-          /* position */position,
-          /* velocity : tuple */[
+  id.contents = id.contents + 1 | 0;
+  return {
+          position: position,
+          velocity: /* tuple */[
             0,
             0,
             0
           ],
-          /* id */id[0]
-        ];
+          id: id.contents
+        };
 }
 
 function modifyVelocity(id, param, map) {
   var moon = Relude_Option.getOrThrow(Curry._2(Relude_Int.$$Map.get, id, map));
-  var match = moon[/* velocity */1];
-  var moon_000 = /* position */moon[/* position */0];
-  var moon_001 = /* velocity : tuple */[
+  var match = moon.velocity;
+  var moon_position = moon.position;
+  var moon_velocity = /* tuple */[
     match[0] + param[0] | 0,
     match[1] + param[1] | 0,
     match[2] + param[2] | 0
   ];
-  var moon_002 = /* id */moon[/* id */2];
-  var moon$1 = /* record */[
-    moon_000,
-    moon_001,
-    moon_002
-  ];
+  var moon_id = moon.id;
+  var moon$1 = {
+    position: moon_position,
+    velocity: moon_velocity,
+    id: moon_id
+  };
   return Curry._3(Relude_Int.$$Map.set, id, moon$1, map);
 }
 
@@ -74,35 +76,35 @@ function step(moons) {
   var pairs = makePairs(moons);
   var map = Curry._1(Relude_Int.$$Map.fromList, Relude_List.map((function (moon) {
                 return /* tuple */[
-                        moon[/* id */2],
+                        moon.id,
                         moon
                       ];
               }))(moons));
   return Relude_List.map((function (moon) {
-                  var match = moon[/* velocity */1];
-                  var match$1 = moon[/* position */0];
-                  return /* record */[
-                          /* position : tuple */[
+                  var match = moon.velocity;
+                  var match$1 = moon.position;
+                  return {
+                          position: /* tuple */[
                             match$1[0] + match[0] | 0,
                             match$1[1] + match[1] | 0,
                             match$1[2] + match[2] | 0
                           ],
-                          /* velocity */moon[/* velocity */1],
-                          /* id */moon[/* id */2]
-                        ];
+                          velocity: moon.velocity,
+                          id: moon.id
+                        };
                 }))(Curry._1(Relude_Int.$$Map.values, Relude_List.foldLeft((function (map, param) {
                           var m2 = param[1];
-                          var match = m2[/* position */0];
+                          var match = m2.position;
                           var m1 = param[0];
-                          var match$1 = m1[/* position */0];
+                          var match$1 = m1.position;
                           var x$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[0], match[0]));
                           var y$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[1], match[1]));
                           var z$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[2], match[2]));
-                          return modifyVelocity(m1[/* id */2], /* tuple */[
+                          return modifyVelocity(m1.id, /* tuple */[
                                       -x$prime | 0,
                                       -y$prime | 0,
                                       -z$prime | 0
-                                    ], modifyVelocity(m2[/* id */2], /* tuple */[
+                                    ], modifyVelocity(m2.id, /* tuple */[
                                           x$prime,
                                           y$prime,
                                           z$prime
@@ -127,8 +129,8 @@ function stepUntil(iterations, moons) {
 }
 
 function energy(param) {
-  var match = param[/* velocity */1];
-  var match$1 = param[/* position */0];
+  var match = param.velocity;
+  var match$1 = param.position;
   return Caml_int32.imul((Pervasives.abs(match$1[0]) + Pervasives.abs(match$1[1]) | 0) + Pervasives.abs(match$1[2]) | 0, (Pervasives.abs(match[0]) + Pervasives.abs(match[1]) | 0) + Pervasives.abs(match[2]) | 0);
 }
 
@@ -182,7 +184,7 @@ function lcm(nums) {
       var d = match[0];
       if (d) {
         var divided = Relude_List.filterNot((function (param) {
-                  return Caml_obj.caml_equal(Int64.one, param);
+                  return Caml_int64.eq(Int64.one, param);
                 }))(Relude_List.map((function(i){
                   return function (d) {
                     return Caml_int64.div(d, i);
@@ -198,10 +200,10 @@ function lcm(nums) {
       }
     };
   };
-  return loop(/* int64 */[
-              /* hi */0,
-              /* lo */2
-            ], bigNums);
+  return loop(/* int64 */{
+              hi: 0,
+              lo: 2
+            }, bigNums);
 }
 
 var initialMoons_000 = make(/* tuple */[
@@ -242,9 +244,9 @@ console.log(" Energy after 1000", Curry._1(Relude_List_Specializations.Int.sum, 
 
 var xLoop = loopDetector((function (param) {
         return /* :: */[
-                param[/* position */0][0],
+                param.position[0],
                 /* :: */[
-                  param[/* velocity */1][0],
+                  param.velocity[0],
                   /* [] */0
                 ]
               ];
@@ -252,9 +254,9 @@ var xLoop = loopDetector((function (param) {
 
 var yLoop = loopDetector((function (param) {
         return /* :: */[
-                param[/* position */0][1],
+                param.position[1],
                 /* :: */[
-                  param[/* velocity */1][1],
+                  param.velocity[1],
                   /* [] */0
                 ]
               ];
@@ -262,9 +264,9 @@ var yLoop = loopDetector((function (param) {
 
 var zLoop = loopDetector((function (param) {
         return /* :: */[
-                param[/* position */0][2],
+                param.position[2],
                 /* :: */[
-                  param[/* velocity */1][2],
+                  param.velocity[2],
                   /* [] */0
                 ]
               ];

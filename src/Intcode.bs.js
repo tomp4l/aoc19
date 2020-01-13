@@ -52,30 +52,30 @@ var UnknownMode = Caml_exceptions.create("Intcode-Aoc19.ComputerState.UnknownMod
 var asNumber = Caml_format.caml_int64_of_string;
 
 function fromList$1(list) {
-  return /* record */[
-          /* memory */fromList(list),
-          /* pointer : int64 */[
-            /* hi */0,
-            /* lo */0
-          ],
-          /* relativeBase : int64 */[
-            /* hi */0,
-            /* lo */0
-          ]
-        ];
+  return {
+          memory: fromList(list),
+          pointer: /* int64 */{
+            hi: 0,
+            lo: 0
+          },
+          relativeBase: /* int64 */{
+            hi: 0,
+            lo: 0
+          }
+        };
 }
 
 function get$1(param) {
-  var memory = param[/* memory */0];
-  var pointer = param[/* pointer */1];
+  var memory = param.memory;
+  var pointer = param.pointer;
   return Curry._1(get(pointer), memory);
 }
 
 function increment(state) {
-  state[/* pointer */1] = Caml_int64.add(state[/* pointer */1], /* int64 */[
-        /* hi */0,
-        /* lo */1
-      ]);
+  state.pointer = Caml_int64.add(state.pointer, /* int64 */{
+        hi: 0,
+        lo: 1
+      });
   return /* () */0;
 }
 
@@ -91,14 +91,14 @@ function incrementAndGetWithMode(mode, state) {
     case "0" :
         var p = v;
         var param = state;
-        return Curry._1(getFromMemory(p), param[/* memory */0]);
+        return Curry._1(getFromMemory(p), param.memory);
     case "1" :
         return v;
     case "2" :
         var p$1 = v;
         var param$1 = state;
-        var memory = param$1[/* memory */0];
-        var relativeBase = param$1[/* relativeBase */2];
+        var memory = param$1.memory;
+        var relativeBase = param$1.relativeBase;
         return Curry._1(get(Caml_int64.add(Caml_format.caml_int64_of_string(p$1), relativeBase)), memory);
     default:
       throw UnknownMode;
@@ -113,12 +113,12 @@ function incrementAndSetWithMode(mode, value, state) {
         cell = key;
         break;
     case "2" :
-        cell = Caml_int64.add(key, state[/* relativeBase */2]);
+        cell = Caml_int64.add(key, state.relativeBase);
         break;
     default:
       throw UnknownMode;
   }
-  state[/* memory */0] = Curry._3(set, cell, value, state[/* memory */0]);
+  state.memory = Curry._3(set, cell, value, state.memory);
   return /* () */0;
 }
 
@@ -148,11 +148,11 @@ function jumpIf(param, nonZero, state) {
         }), asNumber, state);
   if (nonZero) {
     if (v !== "0") {
-      state[/* pointer */1] = p;
+      state.pointer = p;
     }
     
   } else if (v === "0") {
-    state[/* pointer */1] = p;
+    state.pointer = p;
   }
   return /* Continue */1;
 }
@@ -180,6 +180,7 @@ function run($staropt$star, $staropt$star$1, intcode) {
       var padded = Relude_String.repeat(4, "0") + op;
       var split = Relude_List.reverse(Relude_String.splitList("", padded));
       var nextOp;
+      var exit = 0;
       if (split) {
         switch (split[0]) {
           case "1" :
@@ -207,20 +208,16 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       }
                       }(partial_arg));
                     } else {
-                      console.error("Unknown op", op);
-                      nextOp = halt;
+                      exit = 1;
                     }
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "2" :
@@ -248,20 +245,16 @@ function run($staropt$star, $staropt$star$1, intcode) {
                       }
                       }(partial_arg$1));
                     } else {
-                      console.error("Unknown op", op);
-                      nextOp = halt;
+                      exit = 1;
                     }
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "3" :
@@ -283,12 +276,10 @@ function run($staropt$star, $staropt$star$1, intcode) {
                   }
                   }(mode));
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "4" :
@@ -308,12 +299,10 @@ function run($staropt$star, $staropt$star$1, intcode) {
                   }
                   }(mode$1));
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "5" :
@@ -335,16 +324,13 @@ function run($staropt$star, $staropt$star$1, intcode) {
                     }
                     }(partial_arg$2));
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "6" :
@@ -366,16 +352,13 @@ function run($staropt$star, $staropt$star$1, intcode) {
                     }
                     }(partial_arg$3));
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "7" :
@@ -401,34 +384,30 @@ function run($staropt$star, $staropt$star$1, intcode) {
                         var param$2 = param;
                         return doOp3((function (a, b) {
                                       if (Int64.compare(a, b) < 0) {
-                                        return /* int64 */[
-                                                /* hi */0,
-                                                /* lo */1
-                                              ];
+                                        return /* int64 */{
+                                                hi: 0,
+                                                lo: 1
+                                              };
                                       } else {
-                                        return /* int64 */[
-                                                /* hi */0,
-                                                /* lo */0
-                                              ];
+                                        return /* int64 */{
+                                                hi: 0,
+                                                lo: 0
+                                              };
                                       }
                                     }), param$1, param$2);
                       }
                       }(partial_arg$4));
                     } else {
-                      console.error("Unknown op", op);
-                      nextOp = halt;
+                      exit = 1;
                     }
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "8" :
@@ -454,34 +433,30 @@ function run($staropt$star, $staropt$star$1, intcode) {
                         var param$2 = param;
                         return doOp3((function (a, b) {
                                       if (Caml_int64.eq(a, b)) {
-                                        return /* int64 */[
-                                                /* hi */0,
-                                                /* lo */1
-                                              ];
+                                        return /* int64 */{
+                                                hi: 0,
+                                                lo: 1
+                                              };
                                       } else {
-                                        return /* int64 */[
-                                                /* hi */0,
-                                                /* lo */0
-                                              ];
+                                        return /* int64 */{
+                                                hi: 0,
+                                                lo: 0
+                                              };
                                       }
                                     }), param$1, param$2);
                       }
                       }(partial_arg$5));
                     } else {
-                      console.error("Unknown op", op);
-                      nextOp = halt;
+                      exit = 1;
                     }
                   } else {
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                   }
                 } else {
-                  console.error("Unknown op", op);
-                  nextOp = halt;
+                  exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           case "9" :
@@ -499,32 +474,31 @@ function run($staropt$star, $staropt$star$1, intcode) {
                           var v = Relude_Function.flipCompose((function (param) {
                                   return incrementAndGetWithMode(mode, param);
                                 }), asNumber, state);
-                          state[/* relativeBase */2] = Caml_int64.add(state[/* relativeBase */2], v);
+                          state.relativeBase = Caml_int64.add(state.relativeBase, v);
                           return /* Continue */1;
                         }
                         }(partial_arg$6));
                       } else {
-                        console.error("Unknown op", op);
-                        nextOp = halt;
+                        exit = 1;
                       }
                       break;
                   case "9" :
                       nextOp = halt;
                       break;
                   default:
-                    console.error("Unknown op", op);
-                    nextOp = halt;
+                    exit = 1;
                 }
               } else {
-                console.error("Unknown op", op);
-                nextOp = halt;
+                exit = 1;
               }
               break;
           default:
-            console.error("Unknown op", op);
-            nextOp = halt;
+            exit = 1;
         }
       } else {
+        exit = 1;
+      }
+      if (exit === 1) {
         console.error("Unknown op", op);
         nextOp = halt;
       }
@@ -543,10 +517,10 @@ function run($staropt$star, $staropt$star$1, intcode) {
   };
   var done_ = program(/* () */0);
   return StackSafeFuture$Aoc19.map((function (param) {
-                state[/* pointer */1] = /* int64 */[
-                  /* hi */0,
-                  /* lo */0
-                ];
+                state.pointer = /* int64 */{
+                  hi: 0,
+                  lo: 0
+                };
                 return get$1(state);
               }), done_);
 }

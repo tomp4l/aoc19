@@ -11,7 +11,7 @@ var Relude_Extensions_Applicative = require("relude/src/extensions/Relude_Extens
 
 function mapState(f, state) {
   var value = state[0];
-  var match = value[/* contents */0];
+  var match = value.contents;
   if (match !== undefined) {
     var v = Caml_option.valFromOption(match);
     return Curry._1(state[2], (function (param) {
@@ -19,40 +19,44 @@ function mapState(f, state) {
                 }));
   } else {
     var callbacks = state[1];
-    callbacks[0] = Relude_Array.append((function (param) {
-            var match = value[0];
+    callbacks.contents = Relude_Array.append((function (param) {
+            var match = value.contents;
             if (match !== undefined) {
               return Curry._1(f, Caml_option.valFromOption(match));
             } else {
               return /* () */0;
             }
-          }), callbacks[0]);
+          }), callbacks.contents);
     return /* () */0;
   }
 }
 
-var inFlight = /* record */[/* contents : array */[]];
+var inFlight = {
+  contents: /* array */[]
+};
 
-var running = /* record */[/* contents */false];
+var running = {
+  contents: false
+};
 
 function defaultExecutionContext(run) {
-  var match = running[0];
+  var match = running.contents;
   if (match) {
-    inFlight[0] = Relude_Array.append(run, inFlight[0]);
+    inFlight.contents = Relude_Array.append(run, inFlight.contents);
     return /* () */0;
   } else {
     var _run = run;
     while(true) {
       var run$1 = _run;
-      running[0] = true;
+      running.contents = true;
       Curry._1(run$1, /* () */0);
-      var match$1 = Relude_Array.head(inFlight[0]);
+      var match$1 = Relude_Array.head(inFlight.contents);
       if (match$1 !== undefined) {
-        inFlight[0] = Relude_Array.tailOrEmpty(inFlight[0]);
+        inFlight.contents = Relude_Array.tailOrEmpty(inFlight.contents);
         _run = match$1;
         continue ;
       } else {
-        running[0] = false;
+        running.contents = false;
         return /* () */0;
       }
     };
@@ -60,16 +64,20 @@ function defaultExecutionContext(run) {
 }
 
 function make(resolver) {
-  var value = /* record */[/* contents */undefined];
-  var callbacks = /* record */[/* contents : array */[]];
+  var value = {
+    contents: undefined
+  };
+  var callbacks = {
+    contents: /* array */[]
+  };
   var resolve = function (v) {
-    value[0] = Caml_option.some(v);
+    value.contents = Caml_option.some(v);
     var _param = /* () */0;
     while(true) {
-      var match = Relude_Array.head(callbacks[0]);
+      var match = Relude_Array.head(callbacks.contents);
       if (match !== undefined) {
         defaultExecutionContext(match);
-        callbacks[0] = Relude_Array.tailOrEmpty(callbacks[0]);
+        callbacks.contents = Relude_Array.tailOrEmpty(callbacks.contents);
         _param = /* () */0;
         continue ;
       } else {

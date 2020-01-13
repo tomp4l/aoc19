@@ -55,22 +55,16 @@ function mapToInts(param) {
   return StackSafeFuture$Aoc19.map(partial_arg, param);
 }
 
-var partial_arg$1 = Relude_Function.Infix.$great$great;
-
 function intList(param) {
-  return partial_arg$1(charList, mapToInts, param);
+  return Relude_Function.Infix.$great$great(charList, mapToInts, param);
 }
-
-var partial_arg$2 = Relude_Function.Infix.$great$great;
 
 function newlineSeparatedInts(param) {
-  return partial_arg$2(newlineSeparated, mapToInts, param);
+  return Relude_Function.Infix.$great$great(newlineSeparated, mapToInts, param);
 }
 
-var partial_arg$3 = Relude_Function.Infix.$great$great;
-
 function commaSeparatedInts(param) {
-  return partial_arg$3(commaSeparated, mapToInts, param);
+  return Relude_Function.Infix.$great$great(commaSeparated, mapToInts, param);
 }
 
 exports.isJest = isJest;

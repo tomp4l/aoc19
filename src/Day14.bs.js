@@ -27,10 +27,10 @@ function parseItem(item) {
               item
             ];
       }
-      return /* record */[
-              /* amount */Caml_format.caml_int_of_string(match[0]),
-              /* chemical */match$1[0]
-            ];
+      return {
+              amount: Caml_format.caml_int_of_string(match[0]),
+              chemical: match$1[0]
+            };
     } else {
       throw [
             ParseError,
@@ -59,13 +59,13 @@ function parseInputLine(line) {
       var splitIngredients = Relude_String.splitList(", ", ingredientProduct[0]);
       var ingredients = Relude_List.map(parseItem)(splitIngredients);
       var match$1 = parseItem(match[0]);
-      var recipe_000 = /* amountMade */match$1[/* amount */0];
-      var recipe = /* record */[
-        recipe_000,
-        /* ingredients */ingredients
-      ];
+      var recipe_amountMade = match$1.amount;
+      var recipe = {
+        amountMade: recipe_amountMade,
+        ingredients: ingredients
+      };
       return /* tuple */[
-              match$1[/* chemical */1],
+              match$1.chemical,
               recipe
             ];
     } else {
@@ -94,8 +94,8 @@ function findOreCost(amount, item, recipeList) {
   var loop = function (amountNeeded, ingredients, leftOvers) {
     if (ingredients) {
       var match = ingredients[0];
-      var chemical = match[/* chemical */1];
-      var amount = match[/* amount */0];
+      var chemical = match.chemical;
+      var amount = match.amount;
       if (chemical === "ORE") {
         var match$1 = loop(amountNeeded, ingredients[1], leftOvers);
         return /* tuple */[
@@ -105,35 +105,35 @@ function findOreCost(amount, item, recipeList) {
       } else {
         var amount$1 = Caml_int64.mul(Caml_int64.of_int32(amount), amountNeeded);
         var match$2 = Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, chemical, recipeList));
-        var amountMade = Caml_int64.of_int32(match$2[/* amountMade */0]);
-        var leftOverAmount = Curry._3(Relude_StringMap.getOrElse, chemical, /* int64 */[
-              /* hi */0,
-              /* lo */0
-            ], leftOvers);
+        var amountMade = Caml_int64.of_int32(match$2.amountMade);
+        var leftOverAmount = Curry._3(Relude_StringMap.getOrElse, chemical, /* int64 */{
+              hi: 0,
+              lo: 0
+            }, leftOvers);
         var match$3 = Caml_int64.ge(leftOverAmount, amount$1) ? /* tuple */[
             Caml_int64.sub(leftOverAmount, amount$1),
-            /* int64 */[
-              /* hi */0,
-              /* lo */0
-            ]
+            /* int64 */{
+              hi: 0,
+              lo: 0
+            }
           ] : /* tuple */[
-            /* int64 */[
-              /* hi */0,
-              /* lo */0
-            ],
+            /* int64 */{
+              hi: 0,
+              lo: 0
+            },
             Caml_int64.sub(amount$1, leftOverAmount)
           ];
         var newAmount = match$3[1];
-        var requiredBatches = Caml_int64.eq(Caml_int64.mod_(newAmount, amountMade), /* int64 */[
-              /* hi */0,
-              /* lo */0
-            ]) ? Caml_int64.div(newAmount, amountMade) : Caml_int64.add(Caml_int64.div(newAmount, amountMade), /* int64 */[
-                /* hi */0,
-                /* lo */1
-              ]);
+        var requiredBatches = Caml_int64.eq(Caml_int64.mod_(newAmount, amountMade), /* int64 */{
+              hi: 0,
+              lo: 0
+            }) ? Caml_int64.div(newAmount, amountMade) : Caml_int64.add(Caml_int64.div(newAmount, amountMade), /* int64 */{
+                hi: 0,
+                lo: 1
+              });
         var newLeftOverAmount = Caml_int64.add(match$3[0], Caml_int64.sub(Caml_int64.mul(requiredBatches, amountMade), newAmount));
         var newLeftOvers = Curry._3(Relude_StringMap.set, chemical, newLeftOverAmount, leftOvers);
-        var match$4 = loop(requiredBatches, match$2[/* ingredients */1], newLeftOvers);
+        var match$4 = loop(requiredBatches, match$2.ingredients, newLeftOvers);
         var match$5 = loop(amountNeeded, ingredients[1], match$4[1]);
         return /* tuple */[
                 Caml_int64.add(match$5[0], match$4[0]),
@@ -142,16 +142,16 @@ function findOreCost(amount, item, recipeList) {
       }
     } else {
       return /* tuple */[
-              /* int64 */[
-                /* hi */0,
-                /* lo */0
-              ],
+              /* int64 */{
+                hi: 0,
+                lo: 0
+              },
               leftOvers
             ];
     }
   };
   var match = Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, item, recipeList));
-  return loop(amount, match[/* ingredients */1], Curry._1(Relude_StringMap.make, /* () */0));
+  return loop(amount, match.ingredients, Curry._1(Relude_StringMap.make, /* () */0));
 }
 
 var Factory = {

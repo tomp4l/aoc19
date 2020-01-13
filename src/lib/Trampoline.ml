@@ -5,6 +5,8 @@ type _ t =
 
 type ('a, 'b) either = Left of 'a | Right of 'b
 
+let more thunk = More thunk
+
 let rec flatMap f trampoline =
   match trampoline with
   | FlatMap (sub, cont) -> FlatMap (sub, fun x -> flatMap f (cont x))

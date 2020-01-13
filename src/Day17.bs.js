@@ -70,14 +70,18 @@ var $$Screen = {
 var InvalidCodePoint = Caml_exceptions.create("Day17-Aoc19.Camera.InvalidCodePoint");
 
 function takeImage(input) {
-  var position = /* record */[/* contents : tuple */[
+  var position = {
+    contents: /* tuple */[
       0,
       0
-    ]];
-  var screen = /* record */[/* contents */Curry._1(make, /* () */0)];
+    ]
+  };
+  var screen = {
+    contents: Curry._1(make, /* () */0)
+  };
   var nextOutput = function (string) {
     var v = Caml_format.caml_int_of_string(string);
-    var match = position[0];
+    var match = position.contents;
     var y = match[1];
     var nextSprite;
     if (v >= 60) {
@@ -135,14 +139,14 @@ function takeImage(input) {
       nextSprite = undefined;
     }
     if (nextSprite !== undefined) {
-      screen[0] = Curry._3(draw, position[0], nextSprite, screen[0]);
-      position[0] = /* tuple */[
+      screen.contents = Curry._3(draw, position.contents, nextSprite, screen.contents);
+      position.contents = /* tuple */[
         match[0] + 1 | 0,
         y
       ];
       return /* () */0;
     } else {
-      position[0] = /* tuple */[
+      position.contents = /* tuple */[
         0,
         y + 1 | 0
       ];
@@ -150,7 +154,7 @@ function takeImage(input) {
     }
   };
   return StackSafeFuture$Aoc19.map((function (param) {
-                return screen[0];
+                return screen.contents;
               }), Intcode$Aoc19.run(undefined, nextOutput, input));
 }
 
@@ -188,23 +192,27 @@ function run(param, input) {
               ]
             ]
           ]));
-  var remainingInput = /* record */[/* contents */fullInput];
-  var out = /* record */[/* contents */0];
+  var remainingInput = {
+    contents: fullInput
+  };
+  var out = {
+    contents: 0
+  };
   var nextOutput = function (s) {
-    out[0] = Caml_format.caml_int_of_string(s);
+    out.contents = Caml_format.caml_int_of_string(s);
     return /* () */0;
   };
   var nextInput = function (param) {
-    var match = remainingInput[0];
+    var match = remainingInput.contents;
     if (match) {
-      remainingInput[0] = match[1];
+      remainingInput.contents = match[1];
       return StackSafeFuture$Aoc19.pure(String(match[0]));
     } else {
       throw NoMoreInput;
     }
   };
   return StackSafeFuture$Aoc19.map((function (param) {
-                return out[0];
+                return out.contents;
               }), Intcode$Aoc19.run(nextInput, nextOutput, input$1));
 }
 
@@ -246,14 +254,12 @@ function findIntersection(screen) {
               }), coords);
 }
 
-var partial_arg = Relude_List_Specializations.Int.sum;
-
-var partial_arg$1 = Relude_List.map((function (param) {
+var partial_arg = Relude_List.map((function (param) {
         return Caml_int32.imul(param[0], param[1]);
       }));
 
 function intersectionsToAlignmentParameters(param) {
-  return Relude_Function.flipCompose(partial_arg$1, partial_arg, param);
+  return Relude_Function.flipCompose(partial_arg, Relude_List_Specializations.Int.sum, param);
 }
 
 function nextPosition(param, param$1) {
@@ -592,7 +598,7 @@ StackSafeFuture$Aoc19.tap((function (param) {
                 return run(c, i);
               }), input, compressed)));
 
-var CoordMap = 0;
+var CoordMap = /* alias */0;
 
 var $great$great = Relude_Function.flipCompose;
 

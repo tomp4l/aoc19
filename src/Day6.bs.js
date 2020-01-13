@@ -186,7 +186,7 @@ StackSafeFuture$Aoc19.tap((function (i) {
 
 var $great$great = Relude_Function.flipCompose;
 
-var StringMap = 0;
+var StringMap = /* alias */0;
 
 exports.$great$great = $great$great;
 exports.entryToTuple = entryToTuple;

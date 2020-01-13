@@ -26,7 +26,7 @@ function combinations(a, b) {
 
 function allInputs(viableInputs) {
   var allDifferent = function (param) {
-    return Caml_obj.caml_equal(Curry._1(Relude_List_Specializations.$$String.sort, /* :: */[
+    return Caml_obj.caml_equal(Relude_List_Specializations.$$String.sort(/* :: */[
                     param[0],
                     /* :: */[
                       param[1],
@@ -41,7 +41,7 @@ function allInputs(viableInputs) {
                         ]
                       ]
                     ]
-                  ]), Curry._1(Relude_List_Specializations.$$String.sort, viableInputs));
+                  ]), Relude_List_Specializations.$$String.sort(viableInputs));
   };
   return Relude_List.filter(allDifferent, Relude_List.map((function (param) {
                       var match = param[1];
@@ -62,11 +62,13 @@ var input = InputLoader$Aoc19.commaSeparated(7);
 var NoMoreInput = Caml_exceptions.create("Day7-Aoc19.NoMoreInput");
 
 function programmed(input, inputs) {
-  var inputsRef = /* record */[/* contents */inputs];
+  var inputsRef = {
+    contents: inputs
+  };
   var nextInput = function (param) {
-    var match = inputsRef[0];
+    var match = inputsRef.contents;
     if (match) {
-      inputsRef[0] = match[1];
+      inputsRef.contents = match[1];
       return StackSafeFuture$Aoc19.pure(match[0]);
     } else {
       console.error("No more input");
@@ -152,11 +154,13 @@ function maxOutput(input) {
 }
 
 function makeLinkedComputer(input, $$const, in_, out) {
-  var useConst = /* record */[/* contents */true];
+  var useConst = {
+    contents: true
+  };
   var nextInput = function (param) {
-    var match = useConst[0];
+    var match = useConst.contents;
     if (match) {
-      useConst[0] = false;
+      useConst.contents = false;
       return StackSafeFuture$Aoc19.pure($$const);
     } else {
       return Curry._1(in_, /* () */0);
@@ -166,28 +170,30 @@ function makeLinkedComputer(input, $$const, in_, out) {
 }
 
 function pure(v) {
-  return /* record */[/* contents : :: */[
+  return {
+          contents: /* :: */[
             v,
             /* [] */0
-          ]];
+          ]
+        };
 }
 
 function push(a, s) {
-  s[0] = /* :: */[
+  s.contents = /* :: */[
     a,
-    s[0]
+    s.contents
   ];
   return /* () */0;
 }
 
 function peek(s) {
-  return Relude_Option.getOrThrow(Relude_List.last(s[0]));
+  return Relude_Option.getOrThrow(Relude_List.last(s.contents));
 }
 
 function pop(s) {
-  var last = Relude_Option.getOrThrow(Relude_List.last(s[0]));
-  var init = Relude_List.initOrEmpty(s[0]);
-  s[0] = init;
+  var last = Relude_Option.getOrThrow(Relude_List.last(s.contents));
+  var init = Relude_List.initOrEmpty(s.contents);
+  s.contents = init;
   return last;
 }
 
@@ -199,21 +205,23 @@ var Stack = {
 };
 
 function futureAndResolve(param) {
-  var res = /* record */[/* contents */(function (param) {
+  var res = {
+    contents: (function (param) {
         return /* () */0;
-      })];
+      })
+  };
   var fut = StackSafeFuture$Aoc19.make((function (param) {
-          res[0] = param;
+          res.contents = param;
           return /* () */0;
         }));
   return /* FutureAndResponse */[
           fut,
-          res[0]
+          res.contents
         ];
 }
 
 function makeIn(stack, param) {
-  var match = Relude_Option.getOrThrow(Relude_List.last(stack[0]));
+  var match = Relude_Option.getOrThrow(Relude_List.last(stack.contents));
   push(futureAndResolve(/* () */0), stack);
   return match[0];
 }
@@ -224,15 +232,17 @@ function makeOut(stack, v) {
 }
 
 function tieFeedbackLoop(lastOutV, lastStack) {
-  var first = /* record */[/* contents */true];
+  var first = {
+    contents: true
+  };
   var lastOut = function (v) {
-    lastOutV[0] = v;
+    lastOutV.contents = v;
     return makeOut(lastStack, v);
   };
   var firstIn = function (param) {
     var firstIn$1 = makeIn(lastStack, /* () */0);
-    if (first[0]) {
-      first[0] = false;
+    if (first.contents) {
+      first.contents = false;
       lastOut("0");
     }
     return firstIn$1;
@@ -244,13 +254,17 @@ function tieFeedbackLoop(lastOutV, lastStack) {
 }
 
 function feedbackN(input, ns) {
-  var lastOutV = /* record */[/* contents */"0"];
+  var lastOutV = {
+    contents: "0"
+  };
   var stacks = Relude_List.map((function (param) {
             var v = futureAndResolve(/* () */0);
-            return /* record */[/* contents : :: */[
+            return {
+                    contents: /* :: */[
                       v,
                       /* [] */0
-                    ]];
+                    ]
+                  };
           }))(ns);
   var lastStack = Relude_Option.getOrThrow(Relude_List.last(stacks));
   var match = tieFeedbackLoop(lastOutV, lastStack);
@@ -266,7 +280,7 @@ function feedbackN(input, ns) {
             return makeLinkedComputer(input, param[0], match[0], match[1]);
           }))(Relude_List.zip(ns, Relude_List.zip(ins, outs)));
   return StackSafeFuture$Aoc19.map((function (param) {
-                return lastOutV[0];
+                return lastOutV.contents;
               }), Curry._1(StackSafeFuture$Aoc19.all, computers));
 }
 
@@ -321,11 +335,11 @@ StackSafeFuture$Aoc19.tap((function (param) {
           return /* () */0;
         }))(Curry._2(StackSafeFuture$Aoc19.flatMap, maxOutputWithFeedback, input));
 
-var List = 0;
+var List = /* alias */0;
 
-var $$Option = 0;
+var $$Option = /* alias */0;
 
-var $$Function = 0;
+var $$Function = /* alias */0;
 
 exports.List = List;
 exports.$$Option = $$Option;

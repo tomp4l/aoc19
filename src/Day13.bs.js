@@ -3,7 +3,6 @@
 
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
-var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Coord$Aoc19 = require("./lib/Coord.bs.js");
@@ -47,13 +46,11 @@ var draw = Coord$Aoc19.CoordMap.set;
 var make = Coord$Aoc19.CoordMap.make;
 
 var partial_arg = Curry._1(Relude_List.countBy, (function (param) {
-        return Caml_obj.caml_equal(/* Block */2, param);
+        return /* Block */2 === param;
       }));
 
-var partial_arg$1 = Coord$Aoc19.CoordMap.values;
-
 function countBlocks(param) {
-  return Relude_Function.flipCompose(partial_arg$1, partial_arg, param);
+  return Relude_Function.flipCompose(Coord$Aoc19.CoordMap.values, partial_arg, param);
 }
 
 var InvalidScreen = Caml_exceptions.create("Day13-Aoc19.Screen.InvalidScreen");
@@ -110,32 +107,38 @@ function runGame(quarters, input) {
     input_000,
     input_001
   ];
-  var score = /* record */[/* contents */0];
-  var screen = /* record */[/* contents */Curry._1(make, /* () */0)];
-  var outputMode = /* record */[/* contents : X */0];
+  var score = {
+    contents: 0
+  };
+  var screen = {
+    contents: Curry._1(make, /* () */0)
+  };
+  var outputMode = {
+    contents: /* X */0
+  };
   var nextOutput = function (string) {
     var v = Caml_format.caml_int_of_string(string);
-    var match = outputMode[0];
+    var match = outputMode.contents;
     if (typeof match === "number") {
-      outputMode[0] = /* Y */Block.__(0, [v]);
+      outputMode.contents = /* Y */Block.__(0, [v]);
       return /* () */0;
     } else if (match.tag) {
       var x = match[0];
       if (x === -1 && match[1] === 0) {
-        score[0] = v;
-        outputMode[0] = /* X */0;
+        score.contents = v;
+        outputMode.contents = /* X */0;
         return /* () */0;
       }
       var sprite = intToSprite(v);
       var screenUpdate = Curry._3(draw, /* tuple */[
             x,
             match[1]
-          ], sprite, screen[0]);
-      screen[0] = screenUpdate;
-      outputMode[0] = /* X */0;
+          ], sprite, screen.contents);
+      screen.contents = screenUpdate;
+      outputMode.contents = /* X */0;
       return /* () */0;
     } else {
-      outputMode[0] = /* SpriteOrScore */Block.__(1, [
+      outputMode.contents = /* SpriteOrScore */Block.__(1, [
           match[0],
           v
         ]);
@@ -143,9 +146,9 @@ function runGame(quarters, input) {
     }
   };
   var nextInput = function (param) {
-    var match = ballPaddleXs(screen[0]);
-    Coord$Aoc19.output(spriteToDisplay, /* Empty */0, screen[0]);
-    console.log("Score: ", score[0]);
+    var match = ballPaddleXs(screen.contents);
+    Coord$Aoc19.output(spriteToDisplay, /* Empty */0, screen.contents);
+    console.log("Score: ", score.contents);
     var match$1 = Curry._2(Relude_Int.compare, match[0], match[1]);
     return StackSafeFuture$Aoc19.pure(match$1 !== 159039494 ? (
                   match$1 >= 939214151 ? "-1" : "0"
@@ -153,8 +156,8 @@ function runGame(quarters, input) {
   };
   return StackSafeFuture$Aoc19.map((function (param) {
                 return /* tuple */[
-                        screen[0],
-                        score[0]
+                        screen.contents,
+                        score.contents
                       ];
               }), Intcode$Aoc19.run(nextInput, nextOutput, input$1));
 }
@@ -185,7 +188,7 @@ StackSafeFuture$Aoc19.tap((function (param) {
                 return runGame(2, param);
               }), input)));
 
-var CoordMap = 0;
+var CoordMap = /* alias */0;
 
 var $great$great = Relude_Function.flipCompose;
 
