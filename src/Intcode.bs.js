@@ -30,7 +30,7 @@ var $$Map = Relude_Map.WithOrd({
 function fromList(list) {
   return Relude_List.foldLeft((function (map, param) {
                   return Curry._3($$Map.set, Caml_int64.of_int32(param[1]), param[0], map);
-                }), Curry._1($$Map.make, /* () */0))(Relude_List.zipWithIndex(list));
+                }), Curry._1($$Map.make, undefined))(Relude_List.zipWithIndex(list));
 }
 
 function get(i) {
@@ -54,14 +54,8 @@ var asNumber = Caml_format.caml_int64_of_string;
 function fromList$1(list) {
   return {
           memory: fromList(list),
-          pointer: /* int64 */{
-            hi: 0,
-            lo: 0
-          },
-          relativeBase: /* int64 */{
-            hi: 0,
-            lo: 0
-          }
+          pointer: Caml_int64.zero,
+          relativeBase: Caml_int64.zero
         };
 }
 
@@ -72,11 +66,8 @@ function get$1(param) {
 }
 
 function increment(state) {
-  state.pointer = Caml_int64.add(state.pointer, /* int64 */{
-        hi: 0,
-        lo: 1
-      });
-  return /* () */0;
+  state.pointer = Caml_int64.add(state.pointer, Caml_int64.one);
+  
 }
 
 function incrementAndGet(state) {
@@ -89,19 +80,18 @@ function incrementAndGetWithMode(mode, state) {
   var v = incrementAndGet(state);
   switch (mode) {
     case "0" :
-        var p = v;
-        var param = state;
-        return Curry._1(getFromMemory(p), param.memory);
+        return Curry._1(getFromMemory(v), state.memory);
     case "1" :
         return v;
     case "2" :
-        var p$1 = v;
-        var param$1 = state;
-        var memory = param$1.memory;
-        var relativeBase = param$1.relativeBase;
-        return Curry._1(get(Caml_int64.add(Caml_format.caml_int64_of_string(p$1), relativeBase)), memory);
+        var memory = state.memory;
+        var relativeBase = state.relativeBase;
+        return Curry._1(get(Caml_int64.add(Caml_format.caml_int64_of_string(v), relativeBase)), memory);
     default:
-      throw UnknownMode;
+      throw {
+            RE_EXN_ID: UnknownMode,
+            Error: new Error()
+          };
   }
 }
 
@@ -116,10 +106,13 @@ function incrementAndSetWithMode(mode, value, state) {
         cell = Caml_int64.add(key, state.relativeBase);
         break;
     default:
-      throw UnknownMode;
+      throw {
+            RE_EXN_ID: UnknownMode,
+            Error: new Error()
+          };
   }
   state.memory = Curry._3(set, cell, value, state.memory);
-  return /* () */0;
+  
 }
 
 function doOp3(op, param, state) {
@@ -158,21 +151,21 @@ function jumpIf(param, nonZero, state) {
 }
 
 function defaultNextInput(param) {
-  var readline = Readline$Aoc19.make(/* () */0);
-  return StackSafeFuture$Aoc19.tap((function (param) {
-                  readline.close();
-                  return /* () */0;
-                }))(Readline$Aoc19.question(readline, "input dear human\n"));
+  var readline = Readline$Aoc19.make(undefined);
+  return StackSafeFuture$Aoc19.tap(function (param) {
+                readline.close();
+                
+              })(Readline$Aoc19.question(readline, "input dear human\n"));
 }
 
 function defaultNextOutput(param) {
   console.log("Output: ", param);
-  return /* () */0;
+  
 }
 
-function run($staropt$star, $staropt$star$1, intcode) {
-  var nextInput = $staropt$star !== undefined ? $staropt$star : defaultNextInput;
-  var nextOutput = $staropt$star$1 !== undefined ? $staropt$star$1 : defaultNextOutput;
+function run(nextInputOpt, nextOutputOpt, intcode) {
+  var nextInput = nextInputOpt !== undefined ? nextInputOpt : defaultNextInput;
+  var nextOutput = nextOutputOpt !== undefined ? nextOutputOpt : defaultNextOutput;
   var state = fromList$1(intcode);
   var program = function (_param) {
     while(true) {
@@ -182,29 +175,27 @@ function run($staropt$star, $staropt$star$1, intcode) {
       var nextOp;
       var exit = 0;
       if (split) {
-        switch (split[0]) {
+        switch (split.hd) {
           case "1" :
-              var match = split[1];
-              if (match && match[0] === "0") {
-                var match$1 = match[1];
+              var match = split.tl;
+              if (match && match.hd === "0") {
+                var match$1 = match.tl;
                 if (match$1) {
-                  var match$2 = match$1[1];
+                  var match$2 = match$1.tl;
                   if (match$2) {
-                    var match$3 = match$2[1];
+                    var match$3 = match$2.tl;
                     if (match$3) {
-                      var partial_arg_000 = match$1[0];
-                      var partial_arg_001 = match$2[0];
-                      var partial_arg_002 = match$3[0];
-                      var partial_arg = /* tuple */[
-                        partial_arg_000,
-                        partial_arg_001,
-                        partial_arg_002
+                      var partial_arg_0 = match$1.hd;
+                      var partial_arg_1 = match$2.hd;
+                      var partial_arg_2 = match$3.hd;
+                      var partial_arg = [
+                        partial_arg_0,
+                        partial_arg_1,
+                        partial_arg_2
                       ];
                       nextOp = (function(partial_arg){
                       return function (param) {
-                        var param$1 = partial_arg;
-                        var param$2 = param;
-                        return doOp3(Caml_int64.add, param$1, param$2);
+                        return doOp3(Caml_int64.add, partial_arg, param);
                       }
                       }(partial_arg));
                     } else {
@@ -221,27 +212,25 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "2" :
-              var match$4 = split[1];
-              if (match$4 && match$4[0] === "0") {
-                var match$5 = match$4[1];
+              var match$4 = split.tl;
+              if (match$4 && match$4.hd === "0") {
+                var match$5 = match$4.tl;
                 if (match$5) {
-                  var match$6 = match$5[1];
+                  var match$6 = match$5.tl;
                   if (match$6) {
-                    var match$7 = match$6[1];
+                    var match$7 = match$6.tl;
                     if (match$7) {
-                      var partial_arg_000$1 = match$5[0];
-                      var partial_arg_001$1 = match$6[0];
-                      var partial_arg_002$1 = match$7[0];
-                      var partial_arg$1 = /* tuple */[
-                        partial_arg_000$1,
-                        partial_arg_001$1,
-                        partial_arg_002$1
+                      var partial_arg_0$1 = match$5.hd;
+                      var partial_arg_1$1 = match$6.hd;
+                      var partial_arg_2$1 = match$7.hd;
+                      var partial_arg$1 = [
+                        partial_arg_0$1,
+                        partial_arg_1$1,
+                        partial_arg_2$1
                       ];
                       nextOp = (function(partial_arg$1){
                       return function (param) {
-                        var param$1 = partial_arg$1;
-                        var param$2 = param;
-                        return doOp3(Caml_int64.mul, param$1, param$2);
+                        return doOp3(Caml_int64.mul, partial_arg$1, param);
                       }
                       }(partial_arg$1));
                     } else {
@@ -258,21 +247,20 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "3" :
-              var match$8 = split[1];
-              if (match$8 && match$8[0] === "0") {
-                var match$9 = match$8[1];
+              var match$8 = split.tl;
+              if (match$8 && match$8.hd === "0") {
+                var match$9 = match$8.tl;
                 if (match$9) {
-                  var mode = match$9[0];
+                  var mode = match$9.hd;
                   nextOp = (function(mode){
                   return function (param) {
-                    var nextInput$1 = nextInput;
-                    var mode$1 = mode;
-                    var state = param;
-                    var input = Curry._1(nextInput$1, /* () */0);
+                    var input = Curry._1(nextInput, undefined);
                     var processed = StackSafeFuture$Aoc19.map((function (v) {
-                            return incrementAndSetWithMode(mode$1, v, state);
+                            return incrementAndSetWithMode(mode, v, param);
                           }), input);
-                    return /* AwaitInput */[processed];
+                    return /* AwaitInput */{
+                            _0: processed
+                          };
                   }
                   }(mode));
                 } else {
@@ -283,18 +271,15 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "4" :
-              var match$10 = split[1];
-              if (match$10 && match$10[0] === "0") {
-                var match$11 = match$10[1];
+              var match$10 = split.tl;
+              if (match$10 && match$10.hd === "0") {
+                var match$11 = match$10.tl;
                 if (match$11) {
-                  var mode$1 = match$11[0];
+                  var mode$1 = match$11.hd;
                   nextOp = (function(mode$1){
                   return function (param) {
-                    var nextOutput$1 = nextOutput;
-                    var mode$2 = mode$1;
-                    var state = param;
-                    var v = incrementAndGetWithMode(mode$2, state);
-                    Curry._1(nextOutput$1, v);
+                    var v = incrementAndGetWithMode(mode$1, param);
+                    Curry._1(nextOutput, v);
                     return /* Continue */1;
                   }
                   }(mode$1));
@@ -306,17 +291,17 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "5" :
-              var match$12 = split[1];
-              if (match$12 && match$12[0] === "0") {
-                var match$13 = match$12[1];
+              var match$12 = split.tl;
+              if (match$12 && match$12.hd === "0") {
+                var match$13 = match$12.tl;
                 if (match$13) {
-                  var match$14 = match$13[1];
+                  var match$14 = match$13.tl;
                   if (match$14) {
-                    var partial_arg_000$2 = match$13[0];
-                    var partial_arg_001$2 = match$14[0];
-                    var partial_arg$2 = /* tuple */[
-                      partial_arg_000$2,
-                      partial_arg_001$2
+                    var partial_arg_0$2 = match$13.hd;
+                    var partial_arg_1$2 = match$14.hd;
+                    var partial_arg$2 = [
+                      partial_arg_0$2,
+                      partial_arg_1$2
                     ];
                     nextOp = (function(partial_arg$2){
                     return function (param) {
@@ -334,17 +319,17 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "6" :
-              var match$15 = split[1];
-              if (match$15 && match$15[0] === "0") {
-                var match$16 = match$15[1];
+              var match$15 = split.tl;
+              if (match$15 && match$15.hd === "0") {
+                var match$16 = match$15.tl;
                 if (match$16) {
-                  var match$17 = match$16[1];
+                  var match$17 = match$16.tl;
                   if (match$17) {
-                    var partial_arg_000$3 = match$16[0];
-                    var partial_arg_001$3 = match$17[0];
-                    var partial_arg$3 = /* tuple */[
-                      partial_arg_000$3,
-                      partial_arg_001$3
+                    var partial_arg_0$3 = match$16.hd;
+                    var partial_arg_1$3 = match$17.hd;
+                    var partial_arg$3 = [
+                      partial_arg_0$3,
+                      partial_arg_1$3
                     ];
                     nextOp = (function(partial_arg$3){
                     return function (param) {
@@ -362,39 +347,31 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "7" :
-              var match$18 = split[1];
-              if (match$18 && match$18[0] === "0") {
-                var match$19 = match$18[1];
+              var match$18 = split.tl;
+              if (match$18 && match$18.hd === "0") {
+                var match$19 = match$18.tl;
                 if (match$19) {
-                  var match$20 = match$19[1];
+                  var match$20 = match$19.tl;
                   if (match$20) {
-                    var match$21 = match$20[1];
+                    var match$21 = match$20.tl;
                     if (match$21) {
-                      var partial_arg_000$4 = match$19[0];
-                      var partial_arg_001$4 = match$20[0];
-                      var partial_arg_002$2 = match$21[0];
-                      var partial_arg$4 = /* tuple */[
-                        partial_arg_000$4,
-                        partial_arg_001$4,
-                        partial_arg_002$2
+                      var partial_arg_0$4 = match$19.hd;
+                      var partial_arg_1$4 = match$20.hd;
+                      var partial_arg_2$2 = match$21.hd;
+                      var partial_arg$4 = [
+                        partial_arg_0$4,
+                        partial_arg_1$4,
+                        partial_arg_2$2
                       ];
                       nextOp = (function(partial_arg$4){
                       return function (param) {
-                        var param$1 = partial_arg$4;
-                        var param$2 = param;
                         return doOp3((function (a, b) {
                                       if (Int64.compare(a, b) < 0) {
-                                        return /* int64 */{
-                                                hi: 0,
-                                                lo: 1
-                                              };
+                                        return Caml_int64.one;
                                       } else {
-                                        return /* int64 */{
-                                                hi: 0,
-                                                lo: 0
-                                              };
+                                        return Caml_int64.zero;
                                       }
-                                    }), param$1, param$2);
+                                    }), partial_arg$4, param);
                       }
                       }(partial_arg$4));
                     } else {
@@ -411,39 +388,31 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "8" :
-              var match$22 = split[1];
-              if (match$22 && match$22[0] === "0") {
-                var match$23 = match$22[1];
+              var match$22 = split.tl;
+              if (match$22 && match$22.hd === "0") {
+                var match$23 = match$22.tl;
                 if (match$23) {
-                  var match$24 = match$23[1];
+                  var match$24 = match$23.tl;
                   if (match$24) {
-                    var match$25 = match$24[1];
+                    var match$25 = match$24.tl;
                     if (match$25) {
-                      var partial_arg_000$5 = match$23[0];
-                      var partial_arg_001$5 = match$24[0];
-                      var partial_arg_002$3 = match$25[0];
-                      var partial_arg$5 = /* tuple */[
-                        partial_arg_000$5,
-                        partial_arg_001$5,
-                        partial_arg_002$3
+                      var partial_arg_0$5 = match$23.hd;
+                      var partial_arg_1$5 = match$24.hd;
+                      var partial_arg_2$3 = match$25.hd;
+                      var partial_arg$5 = [
+                        partial_arg_0$5,
+                        partial_arg_1$5,
+                        partial_arg_2$3
                       ];
                       nextOp = (function(partial_arg$5){
                       return function (param) {
-                        var param$1 = partial_arg$5;
-                        var param$2 = param;
                         return doOp3((function (a, b) {
                                       if (Caml_int64.eq(a, b)) {
-                                        return /* int64 */{
-                                                hi: 0,
-                                                lo: 1
-                                              };
+                                        return Caml_int64.one;
                                       } else {
-                                        return /* int64 */{
-                                                hi: 0,
-                                                lo: 0
-                                              };
+                                        return Caml_int64.zero;
                                       }
-                                    }), param$1, param$2);
+                                    }), partial_arg$5, param);
                       }
                       }(partial_arg$5));
                     } else {
@@ -460,21 +429,19 @@ function run($staropt$star, $staropt$star$1, intcode) {
               }
               break;
           case "9" :
-              var match$26 = split[1];
+              var match$26 = split.tl;
               if (match$26) {
-                switch (match$26[0]) {
+                switch (match$26.hd) {
                   case "0" :
-                      var match$27 = match$26[1];
+                      var match$27 = match$26.tl;
                       if (match$27) {
-                        var partial_arg$6 = match$27[0];
+                        var partial_arg$6 = match$27.hd;
                         nextOp = (function(partial_arg$6){
                         return function (param) {
-                          var mode = partial_arg$6;
-                          var state = param;
                           var v = Relude_Function.flipCompose((function (param) {
-                                  return incrementAndGetWithMode(mode, param);
-                                }), asNumber, state);
-                          state.relativeBase = Caml_int64.add(state.relativeBase, v);
+                                  return incrementAndGetWithMode(partial_arg$6, param);
+                                }), asNumber, param);
+                          param.relativeBase = Caml_int64.add(param.relativeBase, v);
                           return /* Continue */1;
                         }
                         }(partial_arg$6));
@@ -503,24 +470,19 @@ function run($staropt$star, $staropt$star$1, intcode) {
         nextOp = halt;
       }
       var $$continue = Curry._1(nextOp, state);
-      if (typeof $$continue === "number") {
-        if ($$continue !== 0) {
-          _param = /* () */0;
-          continue ;
-        } else {
-          return StackSafeFuture$Aoc19.pure(/* () */0);
-        }
-      } else {
-        return Curry._2(StackSafeFuture$Aoc19.flatMap, program, $$continue[0]);
+      if (typeof $$continue !== "number") {
+        return Curry._2(StackSafeFuture$Aoc19.flatMap, program, $$continue._0);
       }
+      if ($$continue === 0) {
+        return StackSafeFuture$Aoc19.pure(undefined);
+      }
+      _param = undefined;
+      continue ;
     };
   };
-  var done_ = program(/* () */0);
+  var done_ = program(undefined);
   return StackSafeFuture$Aoc19.map((function (param) {
-                state.pointer = /* int64 */{
-                  hi: 0,
-                  lo: 0
-                };
+                state.pointer = Caml_int64.zero;
                 return get$1(state);
               }), done_);
 }

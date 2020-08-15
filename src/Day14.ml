@@ -72,7 +72,7 @@ module Factory = struct
           let restCost, newLeftOvers = loop amountNeeded rest newLeftOvers in
           (restCost + ingredientCost, newLeftOvers)
     in
-    let { ingredients } = getRecipe recipeList item in
+    let { ingredients;_ } = getRecipe recipeList item in
     loop amount ingredients (Relude.StringMap.make ())
 end
 

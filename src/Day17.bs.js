@@ -2,9 +2,7 @@
 'use strict';
 
 var Char = require("bs-platform/lib/js/char.js");
-var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
-var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Caml_string = require("bs-platform/lib/js/caml_string.js");
 var Coord$Aoc19 = require("./lib/Coord.bs.js");
@@ -71,13 +69,13 @@ var InvalidCodePoint = Caml_exceptions.create("Day17-Aoc19.Camera.InvalidCodePoi
 
 function takeImage(input) {
   var position = {
-    contents: /* tuple */[
+    contents: [
       0,
       0
     ]
   };
   var screen = {
-    contents: Curry._1(make, /* () */0)
+    contents: Curry._1(make, undefined)
   };
   var nextOutput = function (string) {
     var v = Caml_format.caml_int_of_string(string);
@@ -88,32 +86,34 @@ function takeImage(input) {
       if (v >= 94) {
         if (v !== 118) {
           if (v >= 95) {
-            throw [
-                  InvalidCodePoint,
-                  v
-                ];
-          } else {
-            nextSprite = /* UpRobot */2;
+            throw {
+                  RE_EXN_ID: InvalidCodePoint,
+                  _1: v,
+                  Error: new Error()
+                };
           }
+          nextSprite = /* UpRobot */2;
         } else {
           nextSprite = /* DownRobot */3;
         }
       } else if (v !== 88) {
         if (v >= 63) {
-          throw [
-                InvalidCodePoint,
-                v
-              ];
+          throw {
+                RE_EXN_ID: InvalidCodePoint,
+                _1: v,
+                Error: new Error()
+              };
         }
         switch (v - 60 | 0) {
           case 0 :
               nextSprite = /* LeftRobot */4;
               break;
           case 1 :
-              throw [
-                    InvalidCodePoint,
-                    v
-                  ];
+              throw {
+                    RE_EXN_ID: InvalidCodePoint,
+                    _1: v,
+                    Error: new Error()
+                  };
           case 2 :
               nextSprite = /* RightRobot */5;
               break;
@@ -125,13 +125,13 @@ function takeImage(input) {
     } else if (v !== 10) {
       if (v !== 35) {
         if (v !== 46) {
-          throw [
-                InvalidCodePoint,
-                v
-              ];
-        } else {
-          nextSprite = /* Empty */0;
+          throw {
+                RE_EXN_ID: InvalidCodePoint,
+                _1: v,
+                Error: new Error()
+              };
         }
+        nextSprite = /* Empty */0;
       } else {
         nextSprite = /* Scaffold */1;
       }
@@ -140,18 +140,17 @@ function takeImage(input) {
     }
     if (nextSprite !== undefined) {
       screen.contents = Curry._3(draw, position.contents, nextSprite, screen.contents);
-      position.contents = /* tuple */[
+      position.contents = [
         match[0] + 1 | 0,
         y
       ];
-      return /* () */0;
     } else {
-      position.contents = /* tuple */[
+      position.contents = [
         0,
         y + 1 | 0
       ];
-      return /* () */0;
     }
+    
   };
   return StackSafeFuture$Aoc19.map((function (param) {
                 return screen.contents;
@@ -167,31 +166,31 @@ var NoMoreInput = Caml_exceptions.create("Day17-Aoc19.Robot.NoMoreInput");
 
 function run(param, input) {
   var input$1 = Relude_List.replaceAt(0, "2", input);
-  var fullInput = Curry._1(Relude_List.flatten, Relude_List.intersperse(/* :: */[
-            /* "\n" */10,
-            /* [] */0
-          ], /* :: */[
-            param[0],
-            /* :: */[
-              param[1],
-              /* :: */[
-                param[2],
-                /* :: */[
-                  param[3],
-                  /* :: */[
-                    /* :: */[
-                      /* "n" */110,
-                      /* [] */0
-                    ],
-                    /* :: */[
-                      /* [] */0,
-                      /* [] */0
-                    ]
-                  ]
-                ]
-              ]
-            ]
-          ]));
+  var fullInput = Curry._1(Relude_List.flatten, Relude_List.intersperse({
+            hd: /* "\n" */10,
+            tl: /* [] */0
+          }, {
+            hd: param[0],
+            tl: {
+              hd: param[1],
+              tl: {
+                hd: param[2],
+                tl: {
+                  hd: param[3],
+                  tl: {
+                    hd: {
+                      hd: /* "n" */110,
+                      tl: /* [] */0
+                    },
+                    tl: {
+                      hd: /* [] */0,
+                      tl: /* [] */0
+                    }
+                  }
+                }
+              }
+            }
+          }));
   var remainingInput = {
     contents: fullInput
   };
@@ -200,16 +199,18 @@ function run(param, input) {
   };
   var nextOutput = function (s) {
     out.contents = Caml_format.caml_int_of_string(s);
-    return /* () */0;
+    
   };
   var nextInput = function (param) {
     var match = remainingInput.contents;
     if (match) {
-      remainingInput.contents = match[1];
-      return StackSafeFuture$Aoc19.pure(String(match[0]));
-    } else {
-      throw NoMoreInput;
+      remainingInput.contents = match.tl;
+      return StackSafeFuture$Aoc19.pure(String(match.hd));
     }
+    throw {
+          RE_EXN_ID: NoMoreInput,
+          Error: new Error()
+        };
   };
   return StackSafeFuture$Aoc19.map((function (param) {
                 return out.contents;
@@ -226,37 +227,36 @@ function findIntersection(screen) {
   return Relude_List.filter((function (c) {
                 var y = c[1];
                 var x = c[0];
-                if (get(c, screen) === /* Scaffold */1) {
-                  var u = get(/* tuple */[
-                        x,
-                        y - 1 | 0
-                      ], screen);
-                  var d = get(/* tuple */[
-                        x,
-                        y + 1 | 0
-                      ], screen);
-                  var l = get(/* tuple */[
-                        x - 1 | 0,
-                        y
-                      ], screen);
-                  var r = get(/* tuple */[
-                        x + 1 | 0,
-                        y
-                      ], screen);
-                  if (u === /* Scaffold */1 && d === /* Scaffold */1 && l === /* Scaffold */1) {
-                    return r === /* Scaffold */1;
-                  } else {
-                    return false;
-                  }
+                if (get(c, screen) !== /* Scaffold */1) {
+                  return false;
+                }
+                var u = get([
+                      x,
+                      y - 1 | 0
+                    ], screen);
+                var d = get([
+                      x,
+                      y + 1 | 0
+                    ], screen);
+                var l = get([
+                      x - 1 | 0,
+                      y
+                    ], screen);
+                var r = get([
+                      x + 1 | 0,
+                      y
+                    ], screen);
+                if (u === /* Scaffold */1 && d === /* Scaffold */1 && l === /* Scaffold */1) {
+                  return r === /* Scaffold */1;
                 } else {
                   return false;
                 }
               }), coords);
 }
 
-var partial_arg = Relude_List.map((function (param) {
-        return Caml_int32.imul(param[0], param[1]);
-      }));
+var partial_arg = Relude_List.map(function (param) {
+      return Math.imul(param[0], param[1]);
+    });
 
 function intersectionsToAlignmentParameters(param) {
   return Relude_Function.flipCompose(partial_arg, Relude_List_Specializations.Int.sum, param);
@@ -267,22 +267,22 @@ function nextPosition(param, param$1) {
   var x = param[0];
   switch (param$1) {
     case /* Up */0 :
-        return /* tuple */[
+        return [
                 x,
                 y - 1 | 0
               ];
     case /* Down */1 :
-        return /* tuple */[
+        return [
                 x,
                 y + 1 | 0
               ];
     case /* Left */2 :
-        return /* tuple */[
+        return [
                 x - 1 | 0,
                 y
               ];
     case /* Right */3 :
-        return /* tuple */[
+        return [
                 x + 1 | 0,
                 y
               ];
@@ -293,22 +293,22 @@ function nextPosition(param, param$1) {
 function leftRight(param) {
   switch (param) {
     case /* Up */0 :
-        return /* tuple */[
+        return [
                 /* Left */2,
                 /* Right */3
               ];
     case /* Down */1 :
-        return /* tuple */[
+        return [
                 /* Right */3,
                 /* Left */2
               ];
     case /* Left */2 :
-        return /* tuple */[
+        return [
                 /* Down */1,
                 /* Up */0
               ];
     case /* Right */3 :
-        return /* tuple */[
+        return [
                 /* Up */0,
                 /* Down */1
               ];
@@ -335,87 +335,90 @@ function findPath(screen) {
     var rp = nextPosition(pos, r);
     if (get(np, screen) === /* Scaffold */1) {
       if (instructions) {
-        var match$1 = instructions[0];
-        _instructions = /* :: */[
-          /* tuple */[
+        var match$1 = instructions.hd;
+        _instructions = {
+          hd: [
             match$1[0],
             match$1[1] + 1 | 0
           ],
-          instructions[1]
-        ];
+          tl: instructions.tl
+        };
         _pos = np;
         continue ;
-      } else {
-        throw InvalidState;
       }
-    } else if (get(lp, screen) === /* Scaffold */1) {
-      _instructions = /* :: */[
-        /* tuple */[
+      throw {
+            RE_EXN_ID: InvalidState,
+            Error: new Error()
+          };
+    }
+    if (get(lp, screen) === /* Scaffold */1) {
+      _instructions = {
+        hd: [
           /* LeftTurn */0,
           1
         ],
-        instructions
-      ];
+        tl: instructions
+      };
       _direction = l;
       _pos = lp;
       continue ;
-    } else if (get(rp, screen) === /* Scaffold */1) {
-      _instructions = /* :: */[
-        /* tuple */[
-          /* RightTurn */1,
-          1
-        ],
-        instructions
-      ];
-      _direction = r;
-      _pos = rp;
-      continue ;
-    } else {
+    }
+    if (get(rp, screen) !== /* Scaffold */1) {
       return Relude_List.reverse(instructions);
     }
+    _instructions = {
+      hd: [
+        /* RightTurn */1,
+        1
+      ],
+      tl: instructions
+    };
+    _direction = r;
+    _pos = rp;
+    continue ;
   };
 }
 
 function xToChars(render, path) {
-  return Relude_List.map((function (s) {
-                  return Caml_string.get(s, 0);
-                }))(Curry._1(Relude_List.flatten, Relude_List.intersperse(/* :: */[
-                      ",",
-                      /* [] */0
-                    ], Relude_List.map(render)(path))));
+  return Relude_List.map(function (s) {
+                return Caml_string.get(s, 0);
+              })(Curry._1(Relude_List.flatten, Relude_List.intersperse({
+                      hd: ",",
+                      tl: /* [] */0
+                    }, Relude_List.map(render)(path))));
 }
 
 function pathToChars(param) {
   return xToChars((function (param) {
-                return /* :: */[
-                        param[0] ? "R" : "L",
-                        /* :: */[
-                          ",",
-                          Relude_String.splitList("", String(param[1]))
-                        ]
-                      ];
+                return {
+                        hd: param[0] ? "R" : "L",
+                        tl: {
+                          hd: ",",
+                          tl: Relude_String.splitList("", String(param[1]))
+                        }
+                      };
               }), param);
 }
 
-var charsToAscii = Relude_List.map((function (prim) {
-        return prim;
-      }));
+var charsToAscii = Relude_List.map(function (prim) {
+      return prim;
+    });
 
 function compressedToChars(param) {
-  return xToChars((function (param) {
-                if (param.tag) {
-                  return /* :: */[
-                          Char.escaped(param[0]),
-                          /* [] */0
-                        ];
+  return xToChars((function (c) {
+                if (c.TAG) {
+                  return {
+                          hd: Char.escaped(c._0),
+                          tl: /* [] */0
+                        };
                 } else {
-                  return /* :: */[
-                          param[0] ? "R" : "L",
-                          /* :: */[
-                            ",",
-                            Relude_String.splitList("", String(param[1]))
-                          ]
-                        ];
+                  return {
+                          hd: c._0 ? "R" : "L",
+                          tl: {
+                            hd: ",",
+                            tl: Relude_String.splitList("", String(c._1))
+                          }
+                        };
                 }
               }), param);
 }
@@ -433,51 +436,58 @@ function replace(ident, sub, path) {
     var exit = 0;
     if (subRemaining) {
       if (remaining) {
-        var r = remaining[0];
-        var match = subRemaining[0];
-        if (r.tag || !(match[0] === r[0] && match[1] === r[1])) {
+        var r = remaining.hd;
+        var match = subRemaining.hd;
+        if (r.TAG) {
           exit = 2;
         } else {
-          _remaining = remaining[1];
-          _removed = /* :: */[
-            r,
-            removed
-          ];
-          _subRemaining = subRemaining[1];
-          continue ;
+          if (match[0] === r._0 && match[1] === r._1) {
+            _remaining = remaining.tl;
+            _removed = {
+              hd: r,
+              tl: removed
+            };
+            _subRemaining = subRemaining.tl;
+            continue ;
+          }
+          exit = 2;
         }
       } else {
         exit = 2;
       }
     } else {
-      _replaced = /* :: */[
-        /* Compressed */Block.__(1, [ident]),
-        replaced
-      ];
+      _replaced = {
+        hd: {
+          TAG: /* Compressed */1,
+          _0: ident
+        },
+        tl: replaced
+      };
       _removed = /* [] */0;
       _subRemaining = sub;
       continue ;
     }
     if (exit === 2) {
       if (remaining) {
-        var n = remaining[0];
-        if (n.tag) {
-          var replaced_001 = Relude_List.concat(removed, replaced);
-          var replaced$1 = /* :: */[
-            n,
-            replaced_001
-          ];
+        var n = remaining.hd;
+        if (n.TAG) {
+          var replaced_1 = Relude_List.concat(removed, replaced);
+          var replaced$1 = {
+            hd: n,
+            tl: replaced_1
+          };
           _replaced = replaced$1;
-          _remaining = remaining[1];
+          _remaining = remaining.tl;
           _removed = /* [] */0;
           _subRemaining = sub;
           continue ;
-        } else if (removed === /* [] */0) {
-          _replaced = /* :: */[
-            n,
-            replaced
-          ];
-          _remaining = remaining[1];
+        }
+        if (removed === /* [] */0) {
+          _replaced = {
+            hd: n,
+            tl: replaced
+          };
+          _remaining = remaining.tl;
           _removed = /* [] */0;
           _subRemaining = sub;
           continue ;
@@ -510,55 +520,56 @@ function compress(path) {
         }), Curry._3(Relude_List.map2, (function (s, e) {
               var start = Relude_List.take(s, path);
               var end_ = Relude_List.drop(pathLength - e | 0, path);
-              return /* tuple */[
+              return [
                       start,
                       end_
                     ];
             }), lengths, lengths));
-  var raw = Relude_List.map((function (param) {
-            return /* Raw */Block.__(0, [
-                      param[0],
-                      param[1]
-                    ]);
-          }))(path);
-  var compressed = Relude_List.map((function (param) {
-            var e = param[1];
-            var s = param[0];
-            var a = replace(/* "A" */65, s, raw);
-            var b = replace(/* "B" */66, e, a);
-            var remaining = Relude_List.mapOption((function (param) {
-                    if (param.tag) {
-                      return ;
-                    } else {
-                      return /* tuple */[
-                              param[0],
-                              param[1]
-                            ];
-                    }
-                  }), Relude_List.takeWhile((function (param) {
-                        if (param.tag) {
-                          return false;
-                        } else {
-                          return true;
-                        }
-                      }), Relude_List.dropWhile((function (param) {
-                            if (param.tag) {
-                              return true;
-                            } else {
-                              return false;
-                            }
-                          }), b)));
-            var c = replace(/* "C" */67, remaining, b);
-            return /* tuple */[
-                    s,
-                    e,
-                    remaining,
-                    c
-                  ];
-          }))(attempts);
+  var raw = Relude_List.map(function (param) {
+          return {
+                  TAG: /* Raw */0,
+                  _0: param[0],
+                  _1: param[1]
+                };
+        })(path);
+  var compressed = Relude_List.map(function (param) {
+          var e = param[1];
+          var s = param[0];
+          var a = replace(/* "A" */65, s, raw);
+          var b = replace(/* "B" */66, e, a);
+          var remaining = Relude_List.mapOption((function (param) {
+                  if (param.TAG) {
+                    return ;
+                  } else {
+                    return [
+                            param._0,
+                            param._1
+                          ];
+                  }
+                }), Relude_List.takeWhile((function (param) {
+                      if (param.TAG) {
+                        return false;
+                      } else {
+                        return true;
+                      }
+                    }), Relude_List.dropWhile((function (param) {
+                          if (param.TAG) {
+                            return true;
+                          } else {
+                            return false;
+                          }
+                        }), b)));
+          var c = replace(/* "C" */67, remaining, b);
+          return [
+                  s,
+                  e,
+                  remaining,
+                  c
+                ];
+        })(attempts);
   var valid = Relude_List.filter((function (param) {
           return Curry._2(Relude_List.all, (function (param) {
-                        if (param.tag) {
+                        if (param.TAG) {
                           return true;
                         } else {
                           return false;
@@ -566,7 +577,7 @@ function compress(path) {
                       }), param[3]);
         }), compressed);
   var match = Relude_Option.getOrThrow(Relude_List.head(valid));
-  return /* tuple */[
+  return [
           charsToAscii(compressedToChars(match[3])),
           charsToAscii(pathToChars(match[0])),
           charsToAscii(pathToChars(match[1])),
@@ -578,27 +589,27 @@ var input = InputLoader$Aoc19.commaSeparated(17);
 
 var image = Curry._2(StackSafeFuture$Aoc19.flatMap, takeImage, input);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return Relude_Function.flipCompose((function (param) {
-                        return Relude_Function.flipCompose(findIntersection, intersectionsToAlignmentParameters, param);
-                      }), (function (param) {
-                        console.log("sum of the alignment parameters", param);
-                        return /* () */0;
-                      }), param);
-        }))(image);
+StackSafeFuture$Aoc19.tap(function (param) {
+        return Relude_Function.flipCompose((function (param) {
+                      return Relude_Function.flipCompose(findIntersection, intersectionsToAlignmentParameters, param);
+                    }), (function (param) {
+                      console.log("sum of the alignment parameters", param);
+                      
+                    }), param);
+      })(image);
 
 var compressed = StackSafeFuture$Aoc19.map((function (param) {
         return Relude_Function.flipCompose(findPath, compress, param);
       }), image);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          console.log("Dust", param);
-          return /* () */0;
-        }))(Curry._1(StackSafeFuture$Aoc19.flatten, Curry._3(StackSafeFuture$Aoc19.map2, (function (i, c) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        console.log("Dust", param);
+        
+      })(Curry._1(StackSafeFuture$Aoc19.flatten, Curry._3(StackSafeFuture$Aoc19.map2, (function (i, c) {
                 return run(c, i);
               }), input, compressed)));
 
-var CoordMap = /* alias */0;
+var CoordMap;
 
 var $great$great = Relude_Function.flipCompose;
 

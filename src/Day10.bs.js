@@ -22,61 +22,62 @@ function fromString(s) {
   var addCoordinates = function (list) {
     var loopX = function (l, y, x) {
       if (l) {
-        return /* :: */[
-                /* tuple */[
-                  /* tuple */[
+        return {
+                hd: [
+                  [
                     x,
                     y
                   ],
-                  l[0]
+                  l.hd
                 ],
-                loopX(l[1], y, x + 1 | 0)
-              ];
+                tl: loopX(l.tl, y, x + 1 | 0)
+              };
       } else {
         return /* [] */0;
       }
     };
     var loopY = function (l, y) {
       if (l) {
-        return /* :: */[
-                loopX(l[0], y, 0),
-                loopY(l[1], y + 1 | 0)
-              ];
+        return {
+                hd: loopX(l.hd, y, 0),
+                tl: loopY(l.tl, y + 1 | 0)
+              };
       } else {
         return /* [] */0;
       }
     };
     return Curry._1(Relude_List.flatten, loopY(list, 0));
   };
-  var partial_arg = Relude_List.map((function ($$char) {
-          switch ($$char) {
-            case "#" :
-                return /* Asteroid */0;
-            case "." :
-                return /* EmptySpace */1;
-            default:
-              throw [
-                    UnknownArea,
-                    $$char
-                  ];
-          }
-        }));
-  return Curry._1(Coord$Aoc19.CoordMap.fromList, addCoordinates(Relude_List.map((function (param) {
-                          return Relude_Function.flipCompose((function (param) {
-                                        return Relude_String.splitList("", param);
-                                      }), partial_arg, param);
-                        }))(Relude_String.splitList("\n", s))));
+  var partial_arg = Relude_List.map(function ($$char) {
+        switch ($$char) {
+          case "#" :
+              return /* Asteroid */0;
+          case "." :
+              return /* EmptySpace */1;
+          default:
+            throw {
+                  RE_EXN_ID: UnknownArea,
+                  _1: $$char,
+                  Error: new Error()
+                };
+        }
+      });
+  return Curry._1(Coord$Aoc19.CoordMap.fromList, addCoordinates(Relude_List.map(function (param) {
+                        return Relude_Function.flipCompose((function (param) {
+                                      return Relude_String.splitList("", param);
+                                    }), partial_arg, param);
+                      })(Relude_String.splitList("\n", s))));
 }
 
 var size = Coord$Aoc19.CoordMap.length;
 
 function get(v) {
   var partial_arg = Curry._1(Coord$Aoc19.CoordMap.get, v);
-  return (function (param) {
-      return Relude_Function.flipCompose(partial_arg, (function (param) {
-                    return Relude_Option.getOrElse(/* OutOfBounds */2, param);
-                  }), param);
-    });
+  return function (param) {
+    return Relude_Function.flipCompose(partial_arg, (function (param) {
+                  return Relude_Option.getOrElse(/* OutOfBounds */2, param);
+                }), param);
+  };
 }
 
 function vaporise(v) {
@@ -103,47 +104,44 @@ function gcm(param) {
   var a = param[0];
   if (a === 0) {
     return Pervasives.abs(b);
-  } else if (b === 0) {
-    return Pervasives.abs(a);
-  } else {
-    var a$1 = Pervasives.abs(a);
-    var b$1 = Pervasives.abs(b);
-    var min = a$1 < b$1 ? a$1 : b$1;
-    return Relude_List.foldLeft((function (gcm, i) {
-                    if (Caml_int32.mod_(a$1, i) === 0 && Caml_int32.mod_(b$1, i) === 0) {
-                      return i;
-                    } else {
-                      return gcm;
-                    }
-                  }), 1)(Relude_List.makeWithIndex(min, (function (param) {
-                      return 1 + param | 0;
-                    })));
   }
+  if (b === 0) {
+    return Pervasives.abs(a);
+  }
+  var a$1 = Pervasives.abs(a);
+  var b$1 = Pervasives.abs(b);
+  var min = a$1 < b$1 ? a$1 : b$1;
+  return Relude_List.foldLeft((function (gcm, i) {
+                  if (Caml_int32.mod_(a$1, i) === 0 && Caml_int32.mod_(b$1, i) === 0) {
+                    return i;
+                  } else {
+                    return gcm;
+                  }
+                }), 1)(Relude_List.makeWithIndex(min, (function (param) {
+                    return 1 + param | 0;
+                  })));
 }
 
 function isVisible(origin, space, p) {
   if (Caml_obj.caml_equal(p, origin)) {
     return false;
-  } else {
-    var vector = Coord$Aoc19.sub(p, origin);
-    var gcm$1 = gcm(vector);
-    var grad = Coord$Aoc19.div(vector, gcm$1);
-    var _p = Coord$Aoc19.sub(p, grad);
-    while(true) {
-      var p$1 = _p;
-      if (Caml_obj.caml_equal(p$1, origin)) {
-        return true;
-      } else {
-        var area = get(p$1)(space);
-        if (area === /* Asteroid */0) {
-          return false;
-        } else {
-          _p = Coord$Aoc19.sub(p$1, grad);
-          continue ;
-        }
-      }
-    };
   }
+  var vector = Coord$Aoc19.sub(p, origin);
+  var gcm$1 = gcm(vector);
+  var grad = Coord$Aoc19.div(vector, gcm$1);
+  var _p = Coord$Aoc19.sub(p, grad);
+  while(true) {
+    var p$1 = _p;
+    if (Caml_obj.caml_equal(p$1, origin)) {
+      return true;
+    }
+    var area = get(p$1)(space);
+    if (area === /* Asteroid */0) {
+      return false;
+    }
+    _p = Coord$Aoc19.sub(p$1, grad);
+    continue ;
+  };
 }
 
 function visibleCount(space, p) {
@@ -156,19 +154,19 @@ function visibleCount(space, p) {
 
 function findBestAsteroid(space) {
   var asteroids$1 = asteroids(space);
-  return Relude_Option.getOrThrow(Relude_List.head(Relude_List.map((function (param) {
-                          return param[0];
-                        }))(Relude_List.sortBy((function (param, param$1) {
+  return Relude_Option.getOrThrow(Relude_List.head(Relude_List.map(function (param) {
+                        return param[0];
+                      })(Relude_List.sortBy((function (param, param$1) {
                             return Curry._2(Relude_Int.compare, param$1[1], param[1]);
-                          }), Relude_List.zip(asteroids$1, Relude_List.map((function (param) {
-                                      return visibleCount(space, param);
-                                    }))(asteroids$1))))));
+                          }), Relude_List.zip(asteroids$1, Relude_List.map(function (param) {
+                                    return visibleCount(space, param);
+                                  })(asteroids$1))))));
 }
 
 function vectorLength(param) {
   var y = param[1];
   var x = param[0];
-  return Math.sqrt(Caml_int32.imul(x, x) + Caml_int32.imul(y, y) | 0);
+  return Math.sqrt(Math.imul(x, x) + Math.imul(y, y) | 0);
 }
 
 function angle(param, param$1) {
@@ -176,8 +174,8 @@ function angle(param, param$1) {
   var x2 = param$1[0];
   var y1 = param[1];
   var x1 = param[0];
-  var determinent = Caml_int32.imul(x1, y2) - Caml_int32.imul(y1, x2) | 0;
-  var dotProduct = Caml_int32.imul(x1, x2) + Caml_int32.imul(y1, y2) | 0;
+  var determinent = Math.imul(x1, y2) - Math.imul(y1, x2) | 0;
+  var dotProduct = Math.imul(x1, x2) + Math.imul(y1, y2) | 0;
   var a = Math.atan2(determinent, dotProduct);
   if (a < 0) {
     return a + 2 * Math.PI;
@@ -187,15 +185,15 @@ function angle(param, param$1) {
 }
 
 function minimumAngle(origin, vector, asteroids) {
-  return Relude_Option.getOrThrow(Relude_List.head(Relude_List.map((function (param) {
-                          return param[0];
-                        }))(Relude_List.sortBy((function (param, param$1) {
+  return Relude_Option.getOrThrow(Relude_List.head(Relude_List.map(function (param) {
+                        return param[0];
+                      })(Relude_List.sortBy((function (param, param$1) {
                             return Curry._2(Relude_Float.compare, param[1], param$1[1]);
-                          }), Relude_List.zip(asteroids, Relude_List.map((function (param) {
-                                      return angle(vector, param);
-                                    }))(Relude_List.map((function (c) {
-                                          return Coord$Aoc19.sub(c, origin);
-                                        }))(asteroids)))))));
+                          }), Relude_List.zip(asteroids, Relude_List.map(function (param) {
+                                    return angle(vector, param);
+                                  })(Relude_List.map(function (c) {
+                                        return Coord$Aoc19.sub(c, origin);
+                                      })(asteroids)))))));
 }
 
 function findFirstTarget(origin, space) {
@@ -203,7 +201,7 @@ function findFirstTarget(origin, space) {
   var visible = Relude_List.filter((function (param) {
           return isVisible(origin, space, param);
         }), asteroids$1);
-  return minimumAngle(origin, /* tuple */[
+  return minimumAngle(origin, [
               0,
               -1
             ], visible);
@@ -235,28 +233,27 @@ function bigFuckingLaser(origin, space, desiredCount) {
     var space$1 = _space;
     if (count === desiredCount) {
       return current;
-    } else {
-      var nextTarget = findNextTarget(origin, space$1, current);
-      var destroyedTarget = Curry._2(Coord$Aoc19.CoordMap.remove, current, space$1);
-      _count = count + 1 | 0;
-      _current = nextTarget;
-      _space = destroyedTarget;
-      continue ;
     }
+    var nextTarget = findNextTarget(origin, space$1, current);
+    var destroyedTarget = Curry._2(Coord$Aoc19.CoordMap.remove, current, space$1);
+    _count = count + 1 | 0;
+    _current = nextTarget;
+    _space = destroyedTarget;
+    continue ;
   };
 }
 
 var input = InputLoader$Aoc19.loadDay(10);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          var match = bigFuckingLaser(param[1], param[0], 200);
-          console.log("200th to be boomed", Caml_int32.imul(match[0], 100) + match[1] | 0);
-          return /* () */0;
-        }))(StackSafeFuture$Aoc19.tap((function (param) {
-              console.log("Best asteroid", visibleCount(param[0], param[1]));
-              return /* () */0;
-            }))(StackSafeFuture$Aoc19.map((function (space) {
-                return /* tuple */[
+StackSafeFuture$Aoc19.tap(function (param) {
+        var match = bigFuckingLaser(param[1], param[0], 200);
+        console.log("200th to be boomed", Math.imul(match[0], 100) + match[1] | 0);
+        
+      })(StackSafeFuture$Aoc19.tap(function (param) {
+            console.log("Best asteroid", visibleCount(param[0], param[1]));
+            
+          })(StackSafeFuture$Aoc19.map((function (space) {
+                return [
                         space,
                         findBestAsteroid(space)
                       ];

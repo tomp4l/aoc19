@@ -2,7 +2,6 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
-var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_format = require("bs-platform/lib/js/caml_format.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Intcode$Aoc19 = require("./Intcode.bs.js");
@@ -23,35 +22,34 @@ function findInput(input, desired) {
       var verbs = _verbs;
       var nouns = _nouns;
       if (nouns) {
-        if (verbs) {
-          var vs = verbs[1];
-          var verb = verbs[0];
-          var ns = nouns[1];
-          var noun = nouns[0];
-          var matchesDesired = (function(noun,ns,verb,vs){
-          return function matchesDesired(a) {
-            var match = Caml_format.caml_int_of_string(a) === desired;
-            if (match) {
-              return StackSafeFuture$Aoc19.pure(Caml_int32.imul(noun, 100) + verb | 0);
-            } else {
-              return search(ns, /* :: */[
-                          verb,
-                          vs
-                        ]);
-            }
-          }
-          }(noun,ns,verb,vs));
-          return Curry._2(StackSafeFuture$Aoc19.flatMap, matchesDesired, runWithInput(input, noun, verb));
-        } else {
+        if (!verbs) {
           return StackSafeFuture$Aoc19.pure(0);
         }
-      } else if (verbs) {
-        _verbs = verbs[1];
-        _nouns = viableInput;
-        continue ;
-      } else {
+        var vs = verbs.tl;
+        var verb = verbs.hd;
+        var ns = nouns.tl;
+        var noun = nouns.hd;
+        var matchesDesired = (function(noun,ns,verb,vs){
+        return function matchesDesired(a) {
+          var match = Caml_format.caml_int_of_string(a) === desired;
+          if (match) {
+            return StackSafeFuture$Aoc19.pure(Math.imul(noun, 100) + verb | 0);
+          } else {
+            return search(ns, {
+                        hd: verb,
+                        tl: vs
+                      });
+          }
+        }
+        }(noun,ns,verb,vs));
+        return Curry._2(StackSafeFuture$Aoc19.flatMap, matchesDesired, runWithInput(input, noun, verb));
+      }
+      if (!verbs) {
         return StackSafeFuture$Aoc19.pure(0);
       }
+      _verbs = verbs.tl;
+      _nouns = viableInput;
+      continue ;
     };
   };
   return search(viableInput, viableInput);
@@ -59,17 +57,17 @@ function findInput(input, desired) {
 
 var input = InputLoader$Aoc19.commaSeparated(2);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          console.log("Processed to:", param);
-          return /* () */0;
-        }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (i) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        console.log("Processed to:", param);
+        
+      })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (i) {
             return runWithInput(i, 12, 2);
           }), input));
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          console.log("Desired at:", param);
-          return /* () */0;
-        }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (i) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        console.log("Desired at:", param);
+        
+      })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (i) {
             return findInput(i, 19690720);
           }), input));
 

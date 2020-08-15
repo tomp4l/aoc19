@@ -19,67 +19,69 @@ var ParseError = Caml_exceptions.create("Day14-Aoc19.Factory.ParseError");
 function parseItem(item) {
   var match = Relude_String.splitList(" ", item);
   if (match) {
-    var match$1 = match[1];
+    var match$1 = match.tl;
     if (match$1) {
-      if (match$1[1]) {
-        throw [
-              ParseError,
-              item
-            ];
+      if (match$1.tl) {
+        throw {
+              RE_EXN_ID: ParseError,
+              _1: item,
+              Error: new Error()
+            };
       }
       return {
-              amount: Caml_format.caml_int_of_string(match[0]),
-              chemical: match$1[0]
+              amount: Caml_format.caml_int_of_string(match.hd),
+              chemical: match$1.hd
             };
-    } else {
-      throw [
-            ParseError,
-            item
-          ];
     }
-  } else {
-    throw [
-          ParseError,
-          item
-        ];
+    throw {
+          RE_EXN_ID: ParseError,
+          _1: item,
+          Error: new Error()
+        };
   }
+  throw {
+        RE_EXN_ID: ParseError,
+        _1: item,
+        Error: new Error()
+      };
 }
 
 function parseInputLine(line) {
   var ingredientProduct = Relude_String.splitList(" => ", line);
   if (ingredientProduct) {
-    var match = ingredientProduct[1];
+    var match = ingredientProduct.tl;
     if (match) {
-      if (match[1]) {
-        throw [
-              ParseError,
-              line
-            ];
+      if (match.tl) {
+        throw {
+              RE_EXN_ID: ParseError,
+              _1: line,
+              Error: new Error()
+            };
       }
-      var splitIngredients = Relude_String.splitList(", ", ingredientProduct[0]);
+      var splitIngredients = Relude_String.splitList(", ", ingredientProduct.hd);
       var ingredients = Relude_List.map(parseItem)(splitIngredients);
-      var match$1 = parseItem(match[0]);
+      var match$1 = parseItem(match.hd);
       var recipe_amountMade = match$1.amount;
       var recipe = {
         amountMade: recipe_amountMade,
         ingredients: ingredients
       };
-      return /* tuple */[
+      return [
               match$1.chemical,
               recipe
             ];
-    } else {
-      throw [
-            ParseError,
-            line
-          ];
     }
-  } else {
-    throw [
-          ParseError,
-          line
-        ];
+    throw {
+          RE_EXN_ID: ParseError,
+          _1: line,
+          Error: new Error()
+        };
   }
+  throw {
+        RE_EXN_ID: ParseError,
+        _1: line,
+        Error: new Error()
+      };
 }
 
 function parseInputLines(lines) {
@@ -92,66 +94,46 @@ function getRecipe(recipeList, item) {
 
 function findOreCost(amount, item, recipeList) {
   var loop = function (amountNeeded, ingredients, leftOvers) {
-    if (ingredients) {
-      var match = ingredients[0];
-      var chemical = match.chemical;
-      var amount = match.amount;
-      if (chemical === "ORE") {
-        var match$1 = loop(amountNeeded, ingredients[1], leftOvers);
-        return /* tuple */[
-                Caml_int64.add(Caml_int64.mul(Caml_int64.of_int32(amount), amountNeeded), match$1[0]),
-                match$1[1]
-              ];
-      } else {
-        var amount$1 = Caml_int64.mul(Caml_int64.of_int32(amount), amountNeeded);
-        var match$2 = Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, chemical, recipeList));
-        var amountMade = Caml_int64.of_int32(match$2.amountMade);
-        var leftOverAmount = Curry._3(Relude_StringMap.getOrElse, chemical, /* int64 */{
-              hi: 0,
-              lo: 0
-            }, leftOvers);
-        var match$3 = Caml_int64.ge(leftOverAmount, amount$1) ? /* tuple */[
-            Caml_int64.sub(leftOverAmount, amount$1),
-            /* int64 */{
-              hi: 0,
-              lo: 0
-            }
-          ] : /* tuple */[
-            /* int64 */{
-              hi: 0,
-              lo: 0
-            },
-            Caml_int64.sub(amount$1, leftOverAmount)
-          ];
-        var newAmount = match$3[1];
-        var requiredBatches = Caml_int64.eq(Caml_int64.mod_(newAmount, amountMade), /* int64 */{
-              hi: 0,
-              lo: 0
-            }) ? Caml_int64.div(newAmount, amountMade) : Caml_int64.add(Caml_int64.div(newAmount, amountMade), /* int64 */{
-                hi: 0,
-                lo: 1
-              });
-        var newLeftOverAmount = Caml_int64.add(match$3[0], Caml_int64.sub(Caml_int64.mul(requiredBatches, amountMade), newAmount));
-        var newLeftOvers = Curry._3(Relude_StringMap.set, chemical, newLeftOverAmount, leftOvers);
-        var match$4 = loop(requiredBatches, match$2.ingredients, newLeftOvers);
-        var match$5 = loop(amountNeeded, ingredients[1], match$4[1]);
-        return /* tuple */[
-                Caml_int64.add(match$5[0], match$4[0]),
-                match$5[1]
-              ];
-      }
-    } else {
-      return /* tuple */[
-              /* int64 */{
-                hi: 0,
-                lo: 0
-              },
+    if (!ingredients) {
+      return [
+              Caml_int64.zero,
               leftOvers
             ];
     }
+    var match = ingredients.hd;
+    var chemical = match.chemical;
+    var amount = match.amount;
+    if (chemical === "ORE") {
+      var match$1 = loop(amountNeeded, ingredients.tl, leftOvers);
+      return [
+              Caml_int64.add(Caml_int64.mul(Caml_int64.of_int32(amount), amountNeeded), match$1[0]),
+              match$1[1]
+            ];
+    }
+    var amount$1 = Caml_int64.mul(Caml_int64.of_int32(amount), amountNeeded);
+    var match$2 = Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, chemical, recipeList));
+    var amountMade = Caml_int64.of_int32(match$2.amountMade);
+    var leftOverAmount = Curry._3(Relude_StringMap.getOrElse, chemical, Caml_int64.zero, leftOvers);
+    var match$3 = Caml_int64.ge(leftOverAmount, amount$1) ? [
+        Caml_int64.sub(leftOverAmount, amount$1),
+        Caml_int64.zero
+      ] : [
+        Caml_int64.zero,
+        Caml_int64.sub(amount$1, leftOverAmount)
+      ];
+    var newAmount = match$3[1];
+    var requiredBatches = Caml_int64.eq(Caml_int64.mod_(newAmount, amountMade), Caml_int64.zero) ? Caml_int64.div(newAmount, amountMade) : Caml_int64.add(Caml_int64.div(newAmount, amountMade), Caml_int64.one);
+    var newLeftOverAmount = Caml_int64.add(match$3[0], Caml_int64.sub(Caml_int64.mul(requiredBatches, amountMade), newAmount));
+    var newLeftOvers = Curry._3(Relude_StringMap.set, chemical, newLeftOverAmount, leftOvers);
+    var match$4 = loop(requiredBatches, match$2.ingredients, newLeftOvers);
+    var match$5 = loop(amountNeeded, ingredients.tl, match$4[1]);
+    return [
+            Caml_int64.add(match$5[0], match$4[0]),
+            match$5[1]
+          ];
   };
   var match = Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, item, recipeList));
-  return loop(amount, match.ingredients, Curry._1(Relude_StringMap.make, /* () */0));
+  return loop(amount, match.ingredients, Curry._1(Relude_StringMap.make, undefined));
 }
 
 var Factory = {
@@ -173,35 +155,33 @@ function findFuelAmount(baseCost, recipeList) {
     var cost = match[0];
     if (Caml_int64.ge(cost, ore)) {
       return Caml_int64.sub(amount, Int64.one);
-    } else {
-      var leftOver = Caml_int64.sub(ore, cost);
-      var worstCase$1 = Caml_int64.div(leftOver, baseCost);
-      if (Caml_int64.lt(worstCase$1, Int64.one)) {
-        _amount = Caml_int64.add(Int64.one, amount);
-        continue ;
-      } else {
-        _amount = Caml_int64.add(worstCase$1, amount);
-        continue ;
-      }
     }
+    var leftOver = Caml_int64.sub(ore, cost);
+    var worstCase$1 = Caml_int64.div(leftOver, baseCost);
+    if (Caml_int64.lt(worstCase$1, Int64.one)) {
+      _amount = Caml_int64.add(Int64.one, amount);
+      continue ;
+    }
+    _amount = Caml_int64.add(worstCase$1, amount);
+    continue ;
   };
 }
 
 var input = InputLoader$Aoc19.newlineSeparated(14);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return Relude_Function.flipCompose(Int64.to_string, (function (param) {
-                        console.log("Fuel made", param);
-                        return /* () */0;
-                      }), param);
-        }))(Curry._3(StackSafeFuture$Aoc19.map2, (function (i, v) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        return Relude_Function.flipCompose(Int64.to_string, (function (param) {
+                      console.log("Fuel made", param);
+                      
+                    }), param);
+      })(Curry._3(StackSafeFuture$Aoc19.map2, (function (i, v) {
             return findFuelAmount(v, Curry._1(Relude_StringMap.fromList, Relude_List.map(parseInputLine)(i)));
-          }), input, StackSafeFuture$Aoc19.tap((function (param) {
-                  return Relude_Function.flipCompose(Int64.to_string, (function (param) {
-                                console.log("Ore cost", param);
-                                return /* () */0;
-                              }), param);
-                }))(StackSafeFuture$Aoc19.map((function (i) {
+          }), input, StackSafeFuture$Aoc19.tap(function (param) {
+                return Relude_Function.flipCompose(Int64.to_string, (function (param) {
+                              console.log("Ore cost", param);
+                              
+                            }), param);
+              })(StackSafeFuture$Aoc19.map((function (i) {
                     return findOreCost(Int64.one, "FUEL", Curry._1(Relude_StringMap.fromList, Relude_List.map(parseInputLine)(i)))[0];
                   }), input))));
 

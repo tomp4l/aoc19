@@ -67,11 +67,11 @@ module Robot = struct
   let initial = { position = (0, 0); direction = Up; isPainting = true }
 
   let doPaint color robot ship =
-    let { position } = robot in
+    let { position;_ } = robot in
     (ship |> Ship.paint position color, { robot with isPainting = false })
 
   let doRotateAndMove rotation robot =
-    let { position; direction } = robot in
+    let { position; direction;_ } = robot in
     let nextDirection = rotate direction rotation in
     let nextPosition = move position nextDirection in
     { position = nextPosition; direction = nextDirection; isPainting = true }
@@ -80,13 +80,13 @@ module Robot = struct
     let robot = ref initial in
     let ship = ref (Ship.make start) in
     let nextInput () =
-      let { position } = !robot in
+      let { position ;_} = !robot in
       Ship.get position !ship |> colorToInt |> string_of_int
       |> StackSafeFuture.pure
     in
     let nextOutput string =
       let v = int_of_string string in
-      let { isPainting } = !robot in
+      let { isPainting ;_} = !robot in
       let nextShip, nextRobot =
         if isPainting then doPaint (intToColor v) !robot !ship
         else (!ship, doRotateAndMove (intToRotation v) !robot)

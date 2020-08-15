@@ -31,22 +31,22 @@ function move(param, param$1) {
   var x = param[0];
   switch (param$1) {
     case /* North */0 :
-        return /* tuple */[
+        return [
                 x,
                 y - 1 | 0
               ];
     case /* South */1 :
-        return /* tuple */[
+        return [
                 x,
                 y + 1 | 0
               ];
     case /* East */2 :
-        return /* tuple */[
+        return [
                 x + 1 | 0,
                 y
               ];
     case /* West */3 :
-        return /* tuple */[
+        return [
                 x - 1 | 0,
                 y
               ];
@@ -70,17 +70,17 @@ function roomToDisplay(param) {
 
 function get(c) {
   var partial_arg = Curry._1(Coord$Aoc19.CoordMap.get, c);
-  return (function (param) {
-      return Relude_Function.flipCompose(partial_arg, (function (param) {
-                    return Relude_Option.getOrElse(/* Unknown */0, param);
-                  }), param);
-    });
+  return function (param) {
+    return Relude_Function.flipCompose(partial_arg, (function (param) {
+                  return Relude_Option.getOrElse(/* Unknown */0, param);
+                }), param);
+  };
 }
 
 var reveal = Coord$Aoc19.CoordMap.set;
 
 function make(p, r) {
-  return Curry._3(reveal, p, r, Curry._1(Coord$Aoc19.CoordMap.make, /* () */0));
+  return Curry._3(reveal, p, r, Curry._1(Coord$Aoc19.CoordMap.make, undefined));
 }
 
 function drawShip(param) {
@@ -109,11 +109,11 @@ function nextDirection(ship, position, history) {
     if (s !== 0) {
       if (e !== 0) {
         if (w !== 0) {
-          return Relude_Option.getOrElse(/* tuple */[
+          return Relude_Option.getOrElse([
                       /* West */3,
                       /* [] */0
                     ], Relude_Option.map((function (d) {
-                            return /* tuple */[
+                            return [
                                     d,
                                     Relude_List.tailOrEmpty(history)
                                   ];
@@ -131,140 +131,141 @@ function nextDirection(ship, position, history) {
                                 }
                               }), Relude_List.head(history))));
         } else {
-          return /* tuple */[
+          return [
                   /* West */3,
-                  /* :: */[
-                    /* West */3,
-                    history
-                  ]
+                  {
+                    hd: /* West */3,
+                    tl: history
+                  }
                 ];
         }
       } else {
-        return /* tuple */[
+        return [
                 /* East */2,
-                /* :: */[
-                  /* East */2,
-                  history
-                ]
+                {
+                  hd: /* East */2,
+                  tl: history
+                }
               ];
       }
     } else {
-      return /* tuple */[
+      return [
               /* South */1,
-              /* :: */[
-                /* South */1,
-                history
-              ]
+              {
+                hd: /* South */1,
+                tl: history
+              }
             ];
     }
   } else {
-    return /* tuple */[
+    return [
             /* North */0,
-            /* :: */[
-              /* North */0,
-              history
-            ]
+            {
+              hd: /* North */0,
+              tl: history
+            }
           ];
   }
 }
 
-function findOxygenSystem($staropt$star, $staropt$star$1, findSensor, input) {
-  var display = $staropt$star !== undefined ? $staropt$star : false;
-  var delay = $staropt$star$1 !== undefined ? $staropt$star$1 : 0;
-  return StackSafeFuture$Aoc19.make((function (resolve) {
-                var position = {
-                  contents: /* tuple */[
-                    0,
-                    0
-                  ]
-                };
-                var lastMove = {
-                  contents: /* East */2
-                };
-                var ship = {
-                  contents: make(position.contents, /* Floor */2)
-                };
-                var history = {
-                  contents: /* [] */0
-                };
-                var totalDistance = {
-                  contents: 0
-                };
-                var maxDistance = {
-                  contents: 0
-                };
-                var found = {
-                  contents: false
-                };
-                var finished = {
-                  contents: false
-                };
-                var nextInput = function (param) {
-                  var match = finished.contents;
-                  if (match) {
-                    return StackSafeFuture$Aoc19.never(/* () */0);
-                  } else if (delay !== 0) {
-                    return StackSafeFuture$Aoc19.delay(delay, (function (param) {
-                                  return String(directionToInt(lastMove.contents));
-                                }));
-                  } else {
-                    return StackSafeFuture$Aoc19.pure(String(directionToInt(lastMove.contents)));
-                  }
-                };
-                var nextOutput = function (v) {
-                  switch (v) {
-                    case "0" :
-                        var attempt = move(position.contents, lastMove.contents);
-                        ship.contents = Curry._3(reveal, attempt, /* Wall */1, ship.contents);
-                        history.contents = Relude_List.tailOrEmpty(history.contents);
-                        break;
-                    case "1" :
-                        position.contents = move(position.contents, lastMove.contents);
-                        var match = get(position.contents)(ship.contents);
-                        if (match !== 0) {
-                          totalDistance.contents = totalDistance.contents - 1 | 0;
-                        } else {
-                          totalDistance.contents = totalDistance.contents + 1 | 0;
-                        }
-                        ship.contents = Curry._3(reveal, position.contents, /* Floor */2, ship.contents);
-                        break;
-                    case "2" :
-                        position.contents = move(position.contents, lastMove.contents);
-                        ship.contents = Curry._3(reveal, position.contents, /* OxygenSystem */3, ship.contents);
-                        if (findSensor) {
-                          finished.contents = true;
-                          Curry._1(resolve, totalDistance.contents + 1 | 0);
-                        } else if (found.contents) {
-                          finished.contents = true;
-                          Curry._1(resolve, maxDistance.contents);
-                        } else {
-                          ship.contents = make(position.contents, /* OxygenSystem */3);
-                          history.contents = /* [] */0;
-                          totalDistance.contents = 0;
-                          maxDistance.contents = 0;
-                          found.contents = true;
-                        }
-                        break;
-                    default:
-                      throw [
-                            UnknownInput,
-                            v
-                          ];
-                  }
-                  var match$1 = nextDirection(ship.contents, position.contents, history.contents);
-                  lastMove.contents = match$1[0];
-                  history.contents = match$1[1];
-                  maxDistance.contents = Curry._2(Relude_Int.max, maxDistance.contents, totalDistance.contents);
-                  if (display) {
-                    console.log("");
-                    Coord$Aoc19.output(roomToDisplay, /* Unknown */0, ship.contents);
-                    console.log("distance", totalDistance.contents);
-                  }
-                  return /* () */0;
-                };
-                Intcode$Aoc19.run(nextInput, nextOutput, input);
-                return /* () */0;
-              }));
+function findOxygenSystem(displayOpt, delayOpt, findSensor, input) {
+  var display = displayOpt !== undefined ? displayOpt : false;
+  var delay = delayOpt !== undefined ? delayOpt : 0;
+  return StackSafeFuture$Aoc19.make(function (resolve) {
+              var position = {
+                contents: [
+                  0,
+                  0
+                ]
+              };
+              var lastMove = {
+                contents: /* East */2
+              };
+              var ship = {
+                contents: make(position.contents, /* Floor */2)
+              };
+              var history = {
+                contents: /* [] */0
+              };
+              var totalDistance = {
+                contents: 0
+              };
+              var maxDistance = {
+                contents: 0
+              };
+              var found = {
+                contents: false
+              };
+              var finished = {
+                contents: false
+              };
+              var nextInput = function (param) {
+                var match = finished.contents;
+                if (match) {
+                  return StackSafeFuture$Aoc19.never(undefined);
+                } else if (delay !== 0) {
+                  return StackSafeFuture$Aoc19.delay(delay, (function (param) {
+                                return String(directionToInt(lastMove.contents));
+                              }));
+                } else {
+                  return StackSafeFuture$Aoc19.pure(String(directionToInt(lastMove.contents)));
+                }
+              };
+              var nextOutput = function (v) {
+                switch (v) {
+                  case "0" :
+                      var attempt = move(position.contents, lastMove.contents);
+                      ship.contents = Curry._3(reveal, attempt, /* Wall */1, ship.contents);
+                      history.contents = Relude_List.tailOrEmpty(history.contents);
+                      break;
+                  case "1" :
+                      position.contents = move(position.contents, lastMove.contents);
+                      var match = get(position.contents)(ship.contents);
+                      if (match !== 0) {
+                        totalDistance.contents = totalDistance.contents - 1 | 0;
+                      } else {
+                        totalDistance.contents = totalDistance.contents + 1 | 0;
+                      }
+                      ship.contents = Curry._3(reveal, position.contents, /* Floor */2, ship.contents);
+                      break;
+                  case "2" :
+                      position.contents = move(position.contents, lastMove.contents);
+                      ship.contents = Curry._3(reveal, position.contents, /* OxygenSystem */3, ship.contents);
+                      if (findSensor) {
+                        finished.contents = true;
+                        Curry._1(resolve, totalDistance.contents + 1 | 0);
+                      } else if (found.contents) {
+                        finished.contents = true;
+                        Curry._1(resolve, maxDistance.contents);
+                      } else {
+                        ship.contents = make(position.contents, /* OxygenSystem */3);
+                        history.contents = /* [] */0;
+                        totalDistance.contents = 0;
+                        maxDistance.contents = 0;
+                        found.contents = true;
+                      }
+                      break;
+                  default:
+                    throw {
+                          RE_EXN_ID: UnknownInput,
+                          _1: v,
+                          Error: new Error()
+                        };
+                }
+                var match$1 = nextDirection(ship.contents, position.contents, history.contents);
+                lastMove.contents = match$1[0];
+                history.contents = match$1[1];
+                maxDistance.contents = Curry._2(Relude_Int.max, maxDistance.contents, totalDistance.contents);
+                if (display) {
+                  console.log("");
+                  Coord$Aoc19.output(roomToDisplay, /* Unknown */0, ship.contents);
+                  console.log("distance", totalDistance.contents);
+                }
+                
+              };
+              Intcode$Aoc19.run(nextInput, nextOutput, input);
+              
+            });
 }
 
 var Robot = {
@@ -275,21 +276,21 @@ var Robot = {
 
 var input = InputLoader$Aoc19.commaSeparated(15);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          console.log("Position", param);
-          return /* () */0;
-        }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        console.log("Position", param);
+        
+      })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
             return findOxygenSystem(undefined, undefined, true, param);
           }), input));
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          console.log("Time for oxygen to diffuse", param);
-          return /* () */0;
-        }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
+StackSafeFuture$Aoc19.tap(function (param) {
+        console.log("Time for oxygen to diffuse", param);
+        
+      })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
             return findOxygenSystem(undefined, undefined, false, param);
           }), input));
 
-var CoordMap = /* alias */0;
+var CoordMap;
 
 var $great$great = Relude_Function.flipCompose;
 

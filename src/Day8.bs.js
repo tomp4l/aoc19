@@ -3,7 +3,6 @@
 
 var Curry = require("bs-platform/lib/js/curry.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
-var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
 var Relude_Option = require("relude/src/Relude_Option.bs.js");
@@ -27,37 +26,36 @@ function chunk(string, size) {
       var remaining$1 = match[1];
       var next = match[0];
       if (remaining$1 === "") {
-        return /* :: */[
-                next,
-                acc
-              ];
-      } else {
-        _acc = /* :: */[
-          next,
-          acc
-        ];
-        _remaining = remaining$1;
-        continue ;
+        return {
+                hd: next,
+                tl: acc
+              };
       }
+      _acc = {
+        hd: next,
+        tl: acc
+      };
+      _remaining = remaining$1;
+      continue ;
     };
   };
   return Relude_List.reverse(loop(string, /* [] */0));
 }
 
 function images(string) {
-  return Relude_List.map((function (param) {
-                  return Relude_String.splitList("", param);
-                }))(chunk(string, imageSize));
+  return Relude_List.map(function (param) {
+                return Relude_String.splitList("", param);
+              })(chunk(string, imageSize));
 }
 
 function digitCount(d) {
-  return (function (param) {
-      return Relude_Function.flipCompose((function (param) {
-                    return Relude_List.filter((function (param) {
-                                  return Caml_obj.caml_equal(d, param);
-                                }), param);
-                  }), Relude_List.length, param);
-    });
+  return function (param) {
+    return Relude_Function.flipCompose((function (param) {
+                  return Relude_List.filter((function (param) {
+                                return Caml_obj.caml_equal(d, param);
+                              }), param);
+                }), Relude_List.length, param);
+  };
 }
 
 function zeroCount(param) {
@@ -86,7 +84,7 @@ function leastZeroes(images) {
 }
 
 function onesTimesTwos(image) {
-  return Caml_int32.imul(Relude_Function.flipCompose((function (param) {
+  return Math.imul(Relude_Function.flipCompose((function (param) {
                     return Relude_List.filter((function (param) {
                                   return Caml_obj.caml_equal("1", param);
                                 }), param);
@@ -110,70 +108,68 @@ function decodedImage(imageStack) {
       var nextStack = _nextStack;
       var remainingStacks = _remainingStacks;
       if (remainingStacks) {
-        var match = remainingStacks[0];
-        if (match) {
-          var p = match[0];
-          if (p === "2") {
-            _nextStack = /* :: */[
-              match[1],
-              nextStack
-            ];
-            _remainingStacks = remainingStacks[1];
-            continue ;
-          } else {
-            var image$1 = /* :: */[
-              p,
-              image
-            ];
-            var dropRest = Relude_List.map(Relude_List.tailOrEmpty)(remainingStacks[1]);
-            var stack = Relude_List.concat(Relude_List.reverse(/* :: */[
-                      match[1],
-                      nextStack
-                    ]), dropRest);
-            _image = image$1;
-            _nextStack = /* [] */0;
-            _remainingStacks = stack;
-            continue ;
-          }
-        } else {
+        var match = remainingStacks.hd;
+        if (!match) {
           return Relude_List.reverse(image);
         }
-      } else {
-        throw [
-              DecodingFailure,
-              "All transparent"
-            ];
+        var p = match.hd;
+        if (p === "2") {
+          _nextStack = {
+            hd: match.tl,
+            tl: nextStack
+          };
+          _remainingStacks = remainingStacks.tl;
+          continue ;
+        }
+        var image$1 = {
+          hd: p,
+          tl: image
+        };
+        var dropRest = Relude_List.map(Relude_List.tailOrEmpty)(remainingStacks.tl);
+        var stack = Relude_List.concat(Relude_List.reverse({
+                  hd: match.tl,
+                  tl: nextStack
+                }), dropRest);
+        _image = image$1;
+        _nextStack = /* [] */0;
+        _remainingStacks = stack;
+        continue ;
       }
+      throw {
+            RE_EXN_ID: DecodingFailure,
+            _1: "All transparent",
+            Error: new Error()
+          };
     };
   };
   return Curry._1(Relude_List_Specializations.$$String.join, pixelLoop(imageStack, /* [] */0, /* [] */0));
 }
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return Relude_Function.flipCompose((function (param) {
-                        return Relude_Function.flipCompose((function (param) {
-                                      return Relude_Function.flipCompose(images, leastZeroes, param);
-                                    }), onesTimesTwos, param);
-                      }), (function (param) {
-                        console.log("Least zeroes", param);
-                        return /* () */0;
-                      }), param);
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (param) {
+        return Relude_Function.flipCompose((function (param) {
+                      return Relude_Function.flipCompose((function (param) {
+                                    return Relude_Function.flipCompose(images, leastZeroes, param);
+                                  }), onesTimesTwos, param);
+                    }), (function (param) {
+                      console.log("Least zeroes", param);
+                      
+                    }), param);
+      })(input);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return Relude_Function.flipCompose((function (param) {
-                        return Relude_Function.flipCompose((function (param) {
-                                      return Relude_Function.flipCompose((function (param) {
-                                                    return Relude_Function.flipCompose(images, decodedImage, param);
-                                                  }), displayImage, param);
-                                    }), (function (param) {
-                                      return "\nDecoded:\n" + param;
-                                    }), param);
-                      }), (function (prim) {
-                        console.log(prim);
-                        return /* () */0;
-                      }), param);
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (param) {
+        return Relude_Function.flipCompose((function (param) {
+                      return Relude_Function.flipCompose((function (param) {
+                                    return Relude_Function.flipCompose((function (param) {
+                                                  return Relude_Function.flipCompose(images, decodedImage, param);
+                                                }), displayImage, param);
+                                  }), (function (param) {
+                                    return "\nDecoded:\n" + param;
+                                  }), param);
+                    }), (function (prim) {
+                      console.log(prim);
+                      
+                    }), param);
+      })(input);
 
 var $great$great = Relude_Function.flipCompose;
 

@@ -12,15 +12,15 @@ var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializ
 
 function compare(a, b) {
   var i = Curry._2(Relude_Int.compare, a[0], b[0]);
-  if (i !== -718572442) {
-    return i;
-  } else {
+  if (i === "equal_to") {
     return Curry._2(Relude_Int.compare, a[1], b[1]);
+  } else {
+    return i;
   }
 }
 
 function eq(a, b) {
-  return compare(a, b) === /* equal_to */-718572442;
+  return compare(a, b) === "equal_to";
 }
 
 var CoordOrd = {
@@ -39,21 +39,21 @@ var CoordMap = Relude_Map.WithOrd({
     });
 
 function add(param, param$1) {
-  return /* tuple */[
+  return [
           param[0] + param$1[0] | 0,
           param[1] + param$1[1] | 0
         ];
 }
 
 function sub(param, param$1) {
-  return /* tuple */[
+  return [
           param[0] - param$1[0] | 0,
           param[1] - param$1[1] | 0
         ];
 }
 
 function div(param, c) {
-  return /* tuple */[
+  return [
           Caml_int32.div(param[0], c),
           Caml_int32.div(param[1], c)
         ];
@@ -71,31 +71,29 @@ function output(toString, $$default, map) {
   var _y = minY;
   while(true) {
     var y = _y;
-    if (y <= maxY) {
-      var loopX = (function(y){
-      return function loopX(_x) {
-        while(true) {
-          var x = _x;
-          if (x <= maxX) {
-            process.stdout.write(Curry._1(toString, Relude_Option.getOrElse($$default, Curry._2(CoordMap.get, /* tuple */[
-                              x,
-                              y
-                            ], map))));
-            _x = x + 1 | 0;
-            continue ;
-          } else {
-            return 0;
-          }
-        };
-      }
-      }(y));
-      loopX(minX);
-      process.stdout.write("\n");
-      _y = y + 1 | 0;
-      continue ;
-    } else {
-      return 0;
+    if (y > maxY) {
+      return ;
     }
+    var loopX = (function(y){
+    return function loopX(_x) {
+      while(true) {
+        var x = _x;
+        if (x > maxX) {
+          return ;
+        }
+        process.stdout.write(Curry._1(toString, Relude_Option.getOrElse($$default, Curry._2(CoordMap.get, [
+                          x,
+                          y
+                        ], map))));
+        _x = x + 1 | 0;
+        continue ;
+      };
+    }
+    }(y));
+    loopX(minX);
+    process.stdout.write("\n");
+    _y = y + 1 | 0;
+    continue ;
   };
 }
 

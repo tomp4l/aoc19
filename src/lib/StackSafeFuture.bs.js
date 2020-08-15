@@ -11,28 +11,26 @@ var Relude_Extensions_Applicative = require("relude/src/extensions/Relude_Extens
 
 function mapState(f, state) {
   var value = state[0];
-  var match = value.contents;
-  if (match !== undefined) {
-    var v = Caml_option.valFromOption(match);
+  var v = value.contents;
+  if (v !== undefined) {
+    var v$1 = Caml_option.valFromOption(v);
     return Curry._1(state[2], (function (param) {
-                  return Curry._1(f, v);
+                  return Curry._1(f, v$1);
                 }));
-  } else {
-    var callbacks = state[1];
-    callbacks.contents = Relude_Array.append((function (param) {
-            var match = value.contents;
-            if (match !== undefined) {
-              return Curry._1(f, Caml_option.valFromOption(match));
-            } else {
-              return /* () */0;
-            }
-          }), callbacks.contents);
-    return /* () */0;
   }
+  var callbacks = state[1];
+  callbacks.contents = Relude_Array.append((function (param) {
+          var v = value.contents;
+          if (v !== undefined) {
+            return Curry._1(f, Caml_option.valFromOption(v));
+          }
+          
+        }), callbacks.contents);
+  
 }
 
 var inFlight = {
-  contents: /* array */[]
+  contents: []
 };
 
 var running = {
@@ -40,25 +38,23 @@ var running = {
 };
 
 function defaultExecutionContext(run) {
-  var match = running.contents;
-  if (match) {
+  if (running.contents) {
     inFlight.contents = Relude_Array.append(run, inFlight.contents);
-    return /* () */0;
+    return ;
   } else {
     var _run = run;
     while(true) {
       var run$1 = _run;
       running.contents = true;
-      Curry._1(run$1, /* () */0);
-      var match$1 = Relude_Array.head(inFlight.contents);
-      if (match$1 !== undefined) {
-        inFlight.contents = Relude_Array.tailOrEmpty(inFlight.contents);
-        _run = match$1;
-        continue ;
-      } else {
+      Curry._1(run$1, undefined);
+      var runnable = Relude_Array.head(inFlight.contents);
+      if (runnable === undefined) {
         running.contents = false;
-        return /* () */0;
+        return ;
       }
+      inFlight.contents = Relude_Array.tailOrEmpty(inFlight.contents);
+      _run = runnable;
+      continue ;
     };
   }
 }
@@ -68,78 +64,79 @@ function make(resolver) {
     contents: undefined
   };
   var callbacks = {
-    contents: /* array */[]
+    contents: []
   };
   var resolve = function (v) {
     value.contents = Caml_option.some(v);
-    var _param = /* () */0;
+    var _param;
     while(true) {
-      var match = Relude_Array.head(callbacks.contents);
-      if (match !== undefined) {
-        defaultExecutionContext(match);
-        callbacks.contents = Relude_Array.tailOrEmpty(callbacks.contents);
-        _param = /* () */0;
-        continue ;
-      } else {
-        return /* () */0;
+      var c = Relude_Array.head(callbacks.contents);
+      if (c === undefined) {
+        return ;
       }
+      defaultExecutionContext(c);
+      callbacks.contents = Relude_Array.tailOrEmpty(callbacks.contents);
+      _param = undefined;
+      continue ;
     };
   };
   Curry._1(resolver, resolve);
-  return /* Future */[/* tuple */[
+  return /* Future */{
+          _0: [
             value,
             callbacks,
             defaultExecutionContext
-          ]];
+          ]
+        };
 }
 
-function map(f, param) {
-  var state = param[0];
-  return make((function (resolve) {
-                return mapState((function (v) {
-                              return Curry._1(resolve, Curry._1(f, v));
-                            }), state);
-              }));
+function map(f, state) {
+  var state$1 = state._0;
+  return make(function (resolve) {
+              return mapState((function (v) {
+                            return Curry._1(resolve, Curry._1(f, v));
+                          }), state$1);
+            });
 }
 
-function flatMap(f, param) {
-  var state = param[0];
-  return make((function (resolve) {
-                return mapState((function (v) {
-                              var match = Curry._1(f, v);
-                              return mapState(Curry.__1(resolve), match[0]);
-                            }), state);
-              }));
+function flatMap(f, state) {
+  var state$1 = state._0;
+  return make(function (resolve) {
+              return mapState((function (v) {
+                            var state = Curry._1(f, v);
+                            return mapState(Curry.__1(resolve), state._0);
+                          }), state$1);
+            });
 }
 
 function tap(f) {
-  return (function (param) {
-      return map((function (v) {
-                    Curry._1(f, v);
-                    return v;
-                  }), param);
-    });
+  return function (param) {
+    return map((function (v) {
+                  Curry._1(f, v);
+                  return v;
+                }), param);
+  };
 }
 
 function pure(v) {
-  return make((function (resolve) {
-                return Curry._1(resolve, v);
-              }));
+  return make(function (resolve) {
+              return Curry._1(resolve, v);
+            });
 }
 
 function never(param) {
-  return make((function (param) {
-                return /* () */0;
-              }));
+  return make(function (param) {
+              
+            });
 }
 
 function delay(t, f) {
-  return make((function (resolve) {
-                setTimeout((function (param) {
-                        return Curry._1(resolve, Curry._1(f, /* () */0));
-                      }), t);
-                return /* () */0;
-              }));
+  return make(function (resolve) {
+              setTimeout((function (param) {
+                      return Curry._1(resolve, Curry._1(f, undefined));
+                    }), t);
+              
+            });
 }
 
 var Functor = {

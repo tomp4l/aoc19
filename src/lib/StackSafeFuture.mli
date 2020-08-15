@@ -1,12 +1,12 @@
 type 'a t
 
-module Apply : BsAbstract.Interface.APPLY with type 'a t = 'a t
+module Apply : BsBastet.Interface.APPLY with type 'a t = 'a t
 
-module Applicative : BsAbstract.Interface.APPLICATIVE with type 'a t = 'a t
+module Applicative : BsBastet.Interface.APPLICATIVE with type 'a t = 'a t
 
-module Functor : BsAbstract.Interface.FUNCTOR with type 'a t = 'a t
+module Functor : BsBastet.Interface.FUNCTOR with type 'a t = 'a t
 
-module Monad : BsAbstract.Interface.MONAD with type 'a t = 'a t
+module Monad : BsBastet.Interface.MONAD with type 'a t = 'a t
 
 val make : (('a -> unit) -> unit) -> 'a t
 

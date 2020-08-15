@@ -20,34 +20,32 @@ function entryToTuple(entry) {
 var StringSet = Relude_Set.WithOrd(Relude_String.Ord);
 
 function addEntry(param, param$1) {
-  var orbiters = param$1[1];
-  var point = param$1[0];
+  var orbiters = param$1._1;
+  var point = param$1._0;
   var o = param[1];
   var p = param[0];
-  var match = p === point;
-  if (match) {
-    return /* Orbit */[
-            point,
-            /* :: */[
-              /* Orbit */[
-                o,
-                /* [] */0
-              ],
-              orbiters
-            ]
-          ];
-  } else {
-    var partial_arg = /* tuple */[
-      p,
-      o
-    ];
-    return /* Orbit */[
-            point,
-            Relude_List.map((function (param) {
-                      return addEntry(partial_arg, param);
-                    }))(orbiters)
-          ];
+  if (p === point) {
+    return /* Orbit */{
+            _0: point,
+            _1: {
+              hd: /* Orbit */{
+                _0: o,
+                _1: /* [] */0
+              },
+              tl: orbiters
+            }
+          };
   }
+  var partial_arg = [
+    p,
+    o
+  ];
+  return /* Orbit */{
+          _0: point,
+          _1: Relude_List.map(function (param) {
+                  return addEntry(partial_arg, param);
+                })(orbiters)
+        };
 }
 
 function entriesToMap(entries) {
@@ -56,17 +54,17 @@ function entriesToMap(entries) {
                   var point = param[0];
                   var existing = Curry._2(Relude_StringMap.get, point, map);
                   if (existing !== undefined) {
-                    return Curry._3(Relude_StringMap.set, point, /* :: */[
-                                orbiter,
-                                existing
-                              ], map);
+                    return Curry._3(Relude_StringMap.set, point, {
+                                hd: orbiter,
+                                tl: existing
+                              }, map);
                   } else {
-                    return Curry._3(Relude_StringMap.set, point, /* :: */[
-                                orbiter,
-                                /* [] */0
-                              ], map);
+                    return Curry._3(Relude_StringMap.set, point, {
+                                hd: orbiter,
+                                tl: /* [] */0
+                              }, map);
                   }
-                }), Curry._1(Relude_StringMap.make, /* () */0))(entries);
+                }), Curry._1(Relude_StringMap.make, undefined))(entries);
 }
 
 function addEntry$1(param, param$1) {
@@ -75,10 +73,10 @@ function addEntry$1(param, param$1) {
 
 function mapToOrbit(map) {
   var _map = map;
-  var _orbit = /* Orbit */[
-    "COM",
-    /* [] */0
-  ];
+  var _orbit = /* Orbit */{
+    _0: "COM",
+    _1: /* [] */0
+  };
   while(true) {
     var orbit = _orbit;
     var map$1 = _map;
@@ -87,45 +85,42 @@ function mapToOrbit(map) {
     var planetsNotOrbitting = Curry._2(StringSet.diff, orbittedSet, orbittingSet);
     var addOrbitAndRemoveFromMap = function (param, key) {
       var map = param[1];
-      var values = Relude_List.map((function (v) {
-                return /* tuple */[
-                        key,
-                        v
-                      ];
-              }))(Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, key, map)));
-      return /* tuple */[
+      var values = Relude_List.map(function (v) {
+              return [
+                      key,
+                      v
+                    ];
+            })(Relude_Option.getOrThrow(Curry._2(Relude_StringMap.get, key, map)));
+      return [
               Relude_List.foldLeft(addEntry$1, param[0])(values),
               Curry._2(Relude_StringMap.remove, key, map)
             ];
     };
-    var match = Curry._3(StringSet.foldLeft, addOrbitAndRemoveFromMap, /* tuple */[
+    var match = Curry._3(StringSet.foldLeft, addOrbitAndRemoveFromMap, [
           orbit,
           map$1
         ], planetsNotOrbitting);
     var newMap = match[1];
     var newOrbit = match[0];
-    var match$1 = Curry._1(Relude_StringMap.isEmpty, newMap);
-    if (match$1) {
+    if (Curry._1(Relude_StringMap.isEmpty, newMap)) {
       return newOrbit;
-    } else {
-      _orbit = newOrbit;
-      _map = newMap;
-      continue ;
     }
+    _orbit = newOrbit;
+    _map = newMap;
+    continue ;
   };
 }
 
 function totalOrbitDistance(orbit) {
   var loop = function (count, orbit) {
-    var rest = orbit[1];
-    if (rest) {
-      var partial_arg = count + 1 | 0;
-      return count + Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map((function (param) {
-                          return loop(partial_arg, param);
-                        }))(rest)) | 0;
-    } else {
+    var rest = orbit._1;
+    if (!rest) {
       return count;
     }
+    var partial_arg = count + 1 | 0;
+    return count + Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map(function (param) {
+                      return loop(partial_arg, param);
+                    })(rest)) | 0;
   };
   return loop(0, orbit);
 }
@@ -138,27 +133,26 @@ function findPathContaining(paths, planet) {
 
 function distanceBetweenYouAndSanta(orbit) {
   var allPaths = function (param) {
-    var orbiters = param[1];
-    var point = param[0];
-    if (orbiters) {
-      var partial_arg = Relude_List.map((function (ps) {
-              return /* :: */[
-                      point,
-                      ps
-                    ];
-            }));
-      return Curry._2(Relude_List.flatMap, (function (param) {
-                    return Relude_Function.flipCompose(allPaths, partial_arg, param);
-                  }), orbiters);
-    } else {
-      return /* :: */[
-              /* :: */[
-                point,
-                /* [] */0
-              ],
-              /* [] */0
-            ];
+    var orbiters = param._1;
+    var point = param._0;
+    if (!orbiters) {
+      return {
+              hd: {
+                hd: point,
+                tl: /* [] */0
+              },
+              tl: /* [] */0
+            };
     }
+    var partial_arg = Relude_List.map(function (ps) {
+          return {
+                  hd: point,
+                  tl: ps
+                };
+        });
+    return Curry._2(Relude_List.flatMap, (function (param) {
+                  return Relude_Function.flipCompose(allPaths, partial_arg, param);
+                }), orbiters);
   };
   var allPaths$1 = allPaths(orbit);
   var santaPath = Curry._1(StringSet.fromList, findPathContaining(allPaths$1, "SAN"));
@@ -174,19 +168,19 @@ var orbits = StackSafeFuture$Aoc19.map((function (i) {
         return mapToOrbit(entriesToMap(Relude_List.map(entryToTuple)(i)));
       }), input);
 
-StackSafeFuture$Aoc19.tap((function (i) {
-          console.log("Total path is: ", totalOrbitDistance(i));
-          return /* () */0;
-        }))(orbits);
+StackSafeFuture$Aoc19.tap(function (i) {
+        console.log("Total path is: ", totalOrbitDistance(i));
+        
+      })(orbits);
 
-StackSafeFuture$Aoc19.tap((function (i) {
-          console.log("Distance: ", distanceBetweenYouAndSanta(i));
-          return /* () */0;
-        }))(orbits);
+StackSafeFuture$Aoc19.tap(function (i) {
+        console.log("Distance: ", distanceBetweenYouAndSanta(i));
+        
+      })(orbits);
 
 var $great$great = Relude_Function.flipCompose;
 
-var StringMap = /* alias */0;
+var StringMap;
 
 exports.$great$great = $great$great;
 exports.entryToTuple = entryToTuple;

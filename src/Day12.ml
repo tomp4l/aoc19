@@ -14,7 +14,7 @@ module Moon = struct
   let modifyVelocity id (x', y', z') map =
     let module Map = Relude.Int.Map in
     let moon = Map.get id map |> Relude.Option.getOrThrow in
-    let { velocity = x, y, z } = moon in
+    let { velocity = x, y, z ; _} = moon in
     let moon = { moon with velocity = (x + x', y + y', z + z') } in
     Map.set id moon map
 
@@ -37,8 +37,8 @@ module Moon = struct
     pairs
     |> Relude.List.foldLeft
          (fun map (m1, m2) ->
-           let { id = id1; position = x1, y1, z1 } = m1 in
-           let { id = id2; position = x2, y2, z2 } = m2 in
+           let { id = id1; position = x1, y1, z1 ;_ } = m1 in
+           let { id = id2; position = x2, y2, z2 ;_} = m2 in
            let x' = Relude.Int.Ord.compare x1 x2 |> Relude.Ordering.toInt in
            let y' = Relude.Int.Ord.compare y1 y2 |> Relude.Ordering.toInt in
            let z' = Relude.Int.Ord.compare z1 z2 |> Relude.Ordering.toInt in
@@ -48,14 +48,14 @@ module Moon = struct
          map
     |> Map.values
     |> Relude.List.map (fun moon ->
-           let { position = x, y, z; velocity = x', y', z' } = moon in
+           let { position = x, y, z; velocity = x', y', z';_ } = moon in
            { moon with position = (x + x', y + y', z + z') })
 
   let stepUntil iterations moons =
     let rec loop ms i = if i = iterations then ms else loop (step ms) (i + 1) in
     loop moons 0
 
-  let energy { position = x, y, z; velocity = x', y', z' } =
+  let energy { position = x, y, z; velocity = x', y', z' ;_} =
     (abs x + abs y + abs z) * (abs x' + abs y' + abs z')
 
   let loopDetector extract moons =
@@ -104,17 +104,17 @@ let () =
 
 let xLoop =
   Moon.loopDetector
-    (fun { position = x, _, _; velocity = x', _, _ } -> [ x; x' ])
+    (fun { position = x, _, _; velocity = x', _, _ ;_} -> [ x; x' ])
     initialMoons
 
 let yLoop =
   Moon.loopDetector
-    (fun { position = _, y, _; velocity = _, y', _ } -> [ y; y' ])
+    (fun { position = _, y, _; velocity = _, y', _ ;_} -> [ y; y' ])
     initialMoons
 
 let zLoop =
   Moon.loopDetector
-    (fun { position = _, _, z; velocity = _, _, z' } -> [ z; z' ])
+    (fun { position = _, _, z; velocity = _, _, z';_ } -> [ z; z' ])
     initialMoons
 
 let () =

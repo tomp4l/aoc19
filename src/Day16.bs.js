@@ -14,12 +14,12 @@ function mask(size, pass) {
   var unitSize = (pass << 2);
   return Relude_List.tailOrEmpty(Relude_List.makeWithIndex(size + 1 | 0, (function (i) {
                     var x = Caml_int32.div(i, unitSize);
-                    var y = i - Caml_int32.imul(x, unitSize) | 0;
+                    var y = i - Math.imul(x, unitSize) | 0;
                     if (y < pass) {
                       return 0;
                     } else if (y < (pass << 1)) {
                       return 1;
-                    } else if (y < Caml_int32.imul(3, pass)) {
+                    } else if (y < Math.imul(3, pass)) {
                       return 0;
                     } else {
                       return -1;
@@ -33,9 +33,9 @@ function lastDigit(d) {
 
 function pass(size, pass$1, number) {
   var mask$1 = mask(size, pass$1);
-  return lastDigit(Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map((function (param) {
-                          return Caml_int32.imul(param[0], param[1]);
-                        }))(Relude_List.zip(mask$1, number))));
+  return lastDigit(Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map(function (param) {
+                        return Math.imul(param[0], param[1]);
+                      })(Relude_List.zip(mask$1, number))));
 }
 
 function phase(size, number) {
@@ -46,15 +46,14 @@ function phase(size, number) {
     var p = _p;
     if (p === 0) {
       return acc;
-    } else {
-      var pass$1 = pass(size, p, number);
-      _acc = /* :: */[
-        pass$1,
-        acc
-      ];
-      _p = p - 1 | 0;
-      continue ;
     }
+    var pass$1 = pass(size, p, number);
+    _acc = {
+      hd: pass$1,
+      tl: acc
+    };
+    _p = p - 1 | 0;
+    continue ;
   };
 }
 
@@ -64,13 +63,12 @@ function phases(amount, size, number) {
   while(true) {
     var number$1 = _number;
     var amount$1 = _amount;
-    if (amount$1 > 0) {
-      _number = phase(size, number$1);
-      _amount = amount$1 - 1 | 0;
-      continue ;
-    } else {
+    if (amount$1 <= 0) {
       return number$1;
     }
+    _number = phase(size, number$1);
+    _amount = amount$1 - 1 | 0;
+    continue ;
   };
 }
 
@@ -80,16 +78,15 @@ function repeatList(amount, list) {
     while(true) {
       var acc = _acc;
       var reversed = _reversed;
-      if (reversed) {
-        _acc = /* :: */[
-          reversed[0],
-          acc
-        ];
-        _reversed = reversed[1];
-        continue ;
-      } else {
+      if (!reversed) {
         return acc;
       }
+      _acc = {
+        hd: reversed.hd,
+        tl: acc
+      };
+      _reversed = reversed.tl;
+      continue ;
     };
   };
   var _amount = amount;
@@ -99,11 +96,10 @@ function repeatList(amount, list) {
     var amount$1 = _amount;
     if (amount$1 === 0) {
       return acc;
-    } else {
-      _acc = prepend(reversed, acc);
-      _amount = amount$1 - 1 | 0;
-      continue ;
     }
+    _acc = prepend(reversed, acc);
+    _amount = amount$1 - 1 | 0;
+    continue ;
   };
 }
 
@@ -116,18 +112,17 @@ function digitsAtOffsetForPhase(numberFromOffset) {
     var prev = _prev;
     var acc = _acc;
     var remainingDigits = _remainingDigits;
-    if (remainingDigits) {
-      var sum = lastDigit(prev + remainingDigits[0] | 0);
-      _prev = sum;
-      _acc = /* :: */[
-        sum,
-        acc
-      ];
-      _remainingDigits = remainingDigits[1];
-      continue ;
-    } else {
+    if (!remainingDigits) {
       return acc;
     }
+    var sum = lastDigit(prev + remainingDigits.hd | 0);
+    _prev = sum;
+    _acc = {
+      hd: sum,
+      tl: acc
+    };
+    _remainingDigits = remainingDigits.tl;
+    continue ;
   };
 }
 
@@ -139,33 +134,32 @@ function digitsAtOffset(amount, repition, offset, number) {
   while(true) {
     var number$1 = _number;
     var amount$1 = _amount;
-    if (amount$1 > 0) {
-      _number = digitsAtOffsetForPhase(number$1);
-      _amount = amount$1 - 1 | 0;
-      continue ;
-    } else {
+    if (amount$1 <= 0) {
       return number$1;
     }
+    _number = digitsAtOffsetForPhase(number$1);
+    _amount = amount$1 - 1 | 0;
+    continue ;
   };
 }
 
 var input = InputLoader$Aoc19.intList(16);
 
-StackSafeFuture$Aoc19.tap((function (number) {
-          console.log("First 8", Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map((function (prim) {
-                            return String(prim);
-                          }))(Relude_List.take(8, phases(100, Curry._1(Relude_List.length, number), number)))));
-          return /* () */0;
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (number) {
+        console.log("First 8", Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map(function (prim) {
+                        return String(prim);
+                      })(Relude_List.take(8, phases(100, Curry._1(Relude_List.length, number), number)))));
+        
+      })(input);
 
-StackSafeFuture$Aoc19.tap((function (number) {
-          console.log("Offset 8", Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map((function (prim) {
-                            return String(prim);
-                          }))(Relude_List.take(8, digitsAtOffset(100, 10000, Caml_format.caml_int_of_string(Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map((function (prim) {
-                                                return String(prim);
-                                              }))(Relude_List.take(7, number)))), number)))));
-          return /* () */0;
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (number) {
+        console.log("Offset 8", Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map(function (prim) {
+                        return String(prim);
+                      })(Relude_List.take(8, digitsAtOffset(100, 10000, Caml_format.caml_int_of_string(Curry._1(Relude_List_Specializations.$$String.join, Relude_List.map(function (prim) {
+                                            return String(prim);
+                                          })(Relude_List.take(7, number)))), number)))));
+        
+      })(input);
 
 exports.mask = mask;
 exports.lastDigit = lastDigit;

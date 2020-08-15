@@ -39,19 +39,19 @@ var input = InputLoader$Aoc19.newlineSeparatedInts(1);
 
 var $great$great = Relude_Function.Infix.$great$great;
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return $great$great(totalFuelRequired, (function (param) {
-                        console.log("Fuel without extra fuel", param);
-                        return /* () */0;
-                      }), param);
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (param) {
+        return $great$great(totalFuelRequired, (function (param) {
+                      console.log("Fuel without extra fuel", param);
+                      
+                    }), param);
+      })(input);
 
-StackSafeFuture$Aoc19.tap((function (param) {
-          return $great$great(totalFuelRequiredIncludingFuel, (function (param) {
-                        console.log("Fuel with fuel for fuel", param);
-                        return /* () */0;
-                      }), param);
-        }))(input);
+StackSafeFuture$Aoc19.tap(function (param) {
+        return $great$great(totalFuelRequiredIncludingFuel, (function (param) {
+                      console.log("Fuel with fuel for fuel", param);
+                      
+                    }), param);
+      })(input);
 
 exports.fuelRequired = fuelRequired;
 exports.totalFuelRequired = totalFuelRequired;

@@ -46,32 +46,32 @@ function move(param, d) {
   var match;
   switch (d) {
     case /* Up */0 :
-        match = /* tuple */[
+        match = [
           0,
           -1
         ];
         break;
     case /* Down */1 :
-        match = /* tuple */[
+        match = [
           0,
           1
         ];
         break;
     case /* Left */2 :
-        match = /* tuple */[
+        match = [
           -1,
           0
         ];
         break;
     case /* Right */3 :
-        match = /* tuple */[
+        match = [
           1,
           0
         ];
         break;
     
   }
-  return /* tuple */[
+  return [
           param[0] + match[0] | 0,
           param[1] + match[1] | 0
         ];
@@ -96,51 +96,49 @@ function colorToDisplay(c) {
 var UnknownInput = Caml_exceptions.create("Day11-Aoc19.UnknownInput");
 
 function intToColor(i) {
-  if (i !== 0) {
-    if (i !== 1) {
-      throw [
-            UnknownInput,
-            i
-          ];
-    } else {
-      return /* White */0;
-    }
-  } else {
+  if (i === 0) {
     return /* Black */1;
   }
+  if (i === 1) {
+    return /* White */0;
+  }
+  throw {
+        RE_EXN_ID: UnknownInput,
+        _1: i,
+        Error: new Error()
+      };
 }
 
 function intToRotation(i) {
-  if (i !== 0) {
-    if (i !== 1) {
-      throw [
-            UnknownInput,
-            i
-          ];
-    } else {
-      return /* Clockwise */0;
-    }
-  } else {
+  if (i === 0) {
     return /* Anticlockwise */1;
   }
+  if (i === 1) {
+    return /* Clockwise */0;
+  }
+  throw {
+        RE_EXN_ID: UnknownInput,
+        _1: i,
+        Error: new Error()
+      };
 }
 
 function get(c) {
   var partial_arg = Curry._1(Coord$Aoc19.CoordMap.get, c);
-  return (function (param) {
-      return Relude_Function.flipCompose(partial_arg, (function (param) {
-                    return Relude_Option.getOrElse(/* Black */1, param);
-                  }), param);
-    });
+  return function (param) {
+    return Relude_Function.flipCompose(partial_arg, (function (param) {
+                  return Relude_Option.getOrElse(/* Black */1, param);
+                }), param);
+  };
 }
 
 var paint = Coord$Aoc19.CoordMap.set;
 
 function make(c) {
-  return Curry._3(paint, /* tuple */[
+  return Curry._3(paint, [
               0,
               0
-            ], c, Curry._1(Coord$Aoc19.CoordMap.make, /* () */0));
+            ], c, Curry._1(Coord$Aoc19.CoordMap.make, undefined));
 }
 
 function totalPainted(param) {
@@ -160,7 +158,7 @@ var Ship = {
 };
 
 var initial = {
-  position: /* tuple */[
+  position: [
     0,
     0
   ],
@@ -169,7 +167,7 @@ var initial = {
 };
 
 function doPaint(color, robot, ship) {
-  return /* tuple */[
+  return [
           Curry._3(paint, robot.position, color, ship),
           {
             position: robot.position,
@@ -204,13 +202,13 @@ function paintShip(start, input) {
   var nextOutput = function (string) {
     var v = Caml_format.caml_int_of_string(string);
     var match = robot.contents;
-    var match$1 = match.isPainting ? doPaint(intToColor(v), robot.contents, ship.contents) : /* tuple */[
+    var match$1 = match.isPainting ? doPaint(intToColor(v), robot.contents, ship.contents) : [
         ship.contents,
         doRotateAndMove(intToRotation(v), robot.contents)
       ];
     ship.contents = match$1[0];
     robot.contents = match$1[1];
-    return /* () */0;
+    
   };
   return StackSafeFuture$Aoc19.map((function (param) {
                 return ship.contents;
@@ -226,23 +224,23 @@ var Robot = {
 
 var input = InputLoader$Aoc19.commaSeparated(11);
 
-StackSafeFuture$Aoc19.tap(drawShip)(StackSafeFuture$Aoc19.tap((function (param) {
-              console.log("Proper job:");
-              return /* () */0;
-            }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
+StackSafeFuture$Aoc19.tap(drawShip)(StackSafeFuture$Aoc19.tap(function (param) {
+            console.log("Proper job:");
+            
+          })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
                 return paintShip(/* White */0, param);
               }), Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
                     return input;
-                  }), StackSafeFuture$Aoc19.tap((function (param) {
-                          return Relude_Function.flipCompose(totalPainted, (function (param) {
-                                        console.log("Total painted", param);
-                                        return /* () */0;
-                                      }), param);
-                        }))(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
+                  }), StackSafeFuture$Aoc19.tap(function (param) {
+                        return Relude_Function.flipCompose(totalPainted, (function (param) {
+                                      console.log("Total painted", param);
+                                      
+                                    }), param);
+                      })(Curry._2(StackSafeFuture$Aoc19.flatMap, (function (param) {
                             return paintShip(/* Black */1, param);
                           }), input))))));
 
-var CoordMap = /* alias */0;
+var CoordMap;
 
 var $great$great = Relude_Function.flipCompose;
 

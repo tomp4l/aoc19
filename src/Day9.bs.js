@@ -12,9 +12,8 @@ var partial_arg = (function (param) {
   });
 
 StackSafeFuture$Aoc19.map((function (eta) {
-        var param = undefined;
-        var param$1 = eta;
-        return Intcode$Aoc19.run(partial_arg, param, param$1);
+        var param;
+        return Intcode$Aoc19.run(partial_arg, param, eta);
       }), input);
 
 var partial_arg$1 = (function (param) {
@@ -22,9 +21,8 @@ var partial_arg$1 = (function (param) {
   });
 
 StackSafeFuture$Aoc19.map((function (eta) {
-        var param = undefined;
-        var param$1 = eta;
-        return Intcode$Aoc19.run(partial_arg$1, param, param$1);
+        var param;
+        return Intcode$Aoc19.run(partial_arg$1, param, eta);
       }), input);
 
 exports.input = input;

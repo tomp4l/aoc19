@@ -4,7 +4,6 @@
 var Curry = require("bs-platform/lib/js/curry.js");
 var Int64 = require("bs-platform/lib/js/int64.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
-var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_int64 = require("bs-platform/lib/js/caml_int64.js");
 var Pervasives = require("bs-platform/lib/js/pervasives.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
@@ -22,7 +21,7 @@ function make(position) {
   id.contents = id.contents + 1 | 0;
   return {
           position: position,
-          velocity: /* tuple */[
+          velocity: [
             0,
             0,
             0
@@ -35,7 +34,7 @@ function modifyVelocity(id, param, map) {
   var moon = Relude_Option.getOrThrow(Curry._2(Relude_Int.$$Map.get, id, map));
   var match = moon.velocity;
   var moon_position = moon.position;
-  var moon_velocity = /* tuple */[
+  var moon_velocity = [
     match[0] + param[0] | 0,
     match[1] + param[1] | 0,
     match[2] + param[2] | 0
@@ -51,22 +50,22 @@ function modifyVelocity(id, param, map) {
 
 function makePairs(moons) {
   var pairs = function (moon, rest) {
-    var newPairs = Relude_List.map((function (m) {
-              return /* tuple */[
-                      moon,
-                      m
-                    ];
-            }))(rest);
+    var newPairs = Relude_List.map(function (m) {
+            return [
+                    moon,
+                    m
+                  ];
+          })(rest);
     if (rest) {
-      return /* :: */[
-              newPairs,
-              pairs(rest[0], rest[1])
-            ];
+      return {
+              hd: newPairs,
+              tl: pairs(rest.hd, rest.tl)
+            };
     } else {
-      return /* :: */[
-              newPairs,
-              /* [] */0
-            ];
+      return {
+              hd: newPairs,
+              tl: /* [] */0
+            };
     }
   };
   return Curry._1(Relude_List.flatten, pairs(Relude_Option.getOrThrow(Relude_List.head(moons)), Relude_List.tailOrEmpty(moons)));
@@ -74,25 +73,25 @@ function makePairs(moons) {
 
 function step(moons) {
   var pairs = makePairs(moons);
-  var map = Curry._1(Relude_Int.$$Map.fromList, Relude_List.map((function (moon) {
-                return /* tuple */[
-                        moon.id,
-                        moon
-                      ];
-              }))(moons));
-  return Relude_List.map((function (moon) {
-                  var match = moon.velocity;
-                  var match$1 = moon.position;
-                  return {
-                          position: /* tuple */[
-                            match$1[0] + match[0] | 0,
-                            match$1[1] + match[1] | 0,
-                            match$1[2] + match[2] | 0
-                          ],
-                          velocity: moon.velocity,
-                          id: moon.id
-                        };
-                }))(Curry._1(Relude_Int.$$Map.values, Relude_List.foldLeft((function (map, param) {
+  var map = Curry._1(Relude_Int.$$Map.fromList, Relude_List.map(function (moon) {
+              return [
+                      moon.id,
+                      moon
+                    ];
+            })(moons));
+  return Relude_List.map(function (moon) {
+                var match = moon.velocity;
+                var match$1 = moon.position;
+                return {
+                        position: [
+                          match$1[0] + match[0] | 0,
+                          match$1[1] + match[1] | 0,
+                          match$1[2] + match[2] | 0
+                        ],
+                        velocity: moon.velocity,
+                        id: moon.id
+                      };
+              })(Curry._1(Relude_Int.$$Map.values, Relude_List.foldLeft((function (map, param) {
                           var m2 = param[1];
                           var match = m2.position;
                           var m1 = param[0];
@@ -100,11 +99,11 @@ function step(moons) {
                           var x$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[0], match[0]));
                           var y$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[1], match[1]));
                           var z$prime = Relude_Ordering.toInt(Curry._2(Relude_Int.Ord.compare, match$1[2], match[2]));
-                          return modifyVelocity(m1.id, /* tuple */[
+                          return modifyVelocity(m1.id, [
                                       -x$prime | 0,
                                       -y$prime | 0,
                                       -z$prime | 0
-                                    ], modifyVelocity(m2.id, /* tuple */[
+                                    ], modifyVelocity(m2.id, [
                                           x$prime,
                                           y$prime,
                                           z$prime
@@ -120,18 +119,17 @@ function stepUntil(iterations, moons) {
     var ms = _ms;
     if (i === iterations) {
       return ms;
-    } else {
-      _i = i + 1 | 0;
-      _ms = step(ms);
-      continue ;
     }
+    _i = i + 1 | 0;
+    _ms = step(ms);
+    continue ;
   };
 }
 
 function energy(param) {
   var match = param.velocity;
   var match$1 = param.position;
-  return Caml_int32.imul((Pervasives.abs(match$1[0]) + Pervasives.abs(match$1[1]) | 0) + Pervasives.abs(match$1[2]) | 0, (Pervasives.abs(match[0]) + Pervasives.abs(match[1]) | 0) + Pervasives.abs(match[2]) | 0);
+  return Math.imul((Pervasives.abs(match$1[0]) + Pervasives.abs(match$1[1]) | 0) + Pervasives.abs(match$1[2]) | 0, (Pervasives.abs(match[0]) + Pervasives.abs(match[1]) | 0) + Pervasives.abs(match[2]) | 0);
 }
 
 function loopDetector(extract, moons) {
@@ -147,14 +145,12 @@ function loopDetector(extract, moons) {
     var moons$1 = _moons;
     var next = step(moons$1);
     var e = Curry._1(extractAll, next);
-    var match = Caml_obj.caml_equal(e, initial);
-    if (match) {
+    if (Caml_obj.caml_equal(e, initial)) {
       return i + 1 | 0;
-    } else {
-      _i = i + 1 | 0;
-      _moons = next;
-      continue ;
     }
+    _i = i + 1 | 0;
+    _moons = next;
+    continue ;
   };
 }
 
@@ -183,105 +179,102 @@ function lcm(nums) {
       var n = match[1];
       var d = match[0];
       if (d) {
-        var divided = Relude_List.filterNot((function (param) {
-                  return Caml_int64.eq(Int64.one, param);
-                }))(Relude_List.map((function(i){
+        var divided = Relude_List.filterNot(function (param) {
+                return Caml_int64.eq(Int64.one, param);
+              })(Relude_List.map((function(i){
                   return function (d) {
                     return Caml_int64.div(d, i);
                   }
                   }(i)))(d));
         return Caml_int64.mul(i, loop(i, Relude_List.concat(divided, n)));
-      } else if (n) {
-        _nums = n;
-        _i = Caml_int64.add(Int64.one, i);
-        continue ;
-      } else {
+      }
+      if (!n) {
         return Int64.one;
       }
+      _nums = n;
+      _i = Caml_int64.add(Int64.one, i);
+      continue ;
     };
   };
-  return loop(/* int64 */{
-              hi: 0,
-              lo: 2
-            }, bigNums);
+  return loop(Caml_int64.mk(2, 0), bigNums);
 }
 
-var initialMoons_000 = make(/* tuple */[
+var initialMoons_0 = make([
       16,
       -11,
       2
     ]);
 
-var initialMoons_001 = /* :: */[
-  make(/* tuple */[
+var initialMoons_1 = {
+  hd: make([
         0,
         -4,
         7
       ]),
-  /* :: */[
-    make(/* tuple */[
+  tl: {
+    hd: make([
           6,
           4,
           -10
         ]),
-    /* :: */[
-      make(/* tuple */[
+    tl: {
+      hd: make([
             -3,
             -2,
             -4
           ]),
-      /* [] */0
-    ]
-  ]
-];
+      tl: /* [] */0
+    }
+  }
+};
 
-var initialMoons = /* :: */[
-  initialMoons_000,
-  initialMoons_001
-];
+var initialMoons = {
+  hd: initialMoons_0,
+  tl: initialMoons_1
+};
 
 console.log(" Energy after 1000", Curry._1(Relude_List_Specializations.Int.sum, Relude_List.map(energy)(stepUntil(1000, initialMoons))));
 
 var xLoop = loopDetector((function (param) {
-        return /* :: */[
-                param.position[0],
-                /* :: */[
-                  param.velocity[0],
-                  /* [] */0
-                ]
-              ];
+        return {
+                hd: param.position[0],
+                tl: {
+                  hd: param.velocity[0],
+                  tl: /* [] */0
+                }
+              };
       }), initialMoons);
 
 var yLoop = loopDetector((function (param) {
-        return /* :: */[
-                param.position[1],
-                /* :: */[
-                  param.velocity[1],
-                  /* [] */0
-                ]
-              ];
+        return {
+                hd: param.position[1],
+                tl: {
+                  hd: param.velocity[1],
+                  tl: /* [] */0
+                }
+              };
       }), initialMoons);
 
 var zLoop = loopDetector((function (param) {
-        return /* :: */[
-                param.position[2],
-                /* :: */[
-                  param.velocity[2],
-                  /* [] */0
-                ]
-              ];
+        return {
+                hd: param.position[2],
+                tl: {
+                  hd: param.velocity[2],
+                  tl: /* [] */0
+                }
+              };
       }), initialMoons);
 
-console.log("Repeating loop after:", Int64.to_string(lcm(/* :: */[
-              xLoop,
-              /* :: */[
-                yLoop,
-                /* :: */[
-                  zLoop,
-                  /* [] */0
-                ]
-              ]
-            ])));
+console.log("Repeating loop after:", Int64.to_string(lcm({
+              hd: xLoop,
+              tl: {
+                hd: yLoop,
+                tl: {
+                  hd: zLoop,
+                  tl: /* [] */0
+                }
+              }
+            })));
 
 var $great$great = Relude_Function.flipCompose;
 

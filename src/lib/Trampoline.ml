@@ -26,7 +26,7 @@ let rec run trampoline =
 
 let map f = flatMap (fun v -> Done (f v))
 
-module Functor : BsAbstract.Interface.FUNCTOR with type 'a t = 'a t = struct
+module Functor : BsBastet.Interface.FUNCTOR with type 'a t = 'a t = struct
   type nonrec 'a t = 'a t
 
   let map = map
@@ -36,7 +36,7 @@ include Relude_Extensions_Functor.FunctorExtensions (Functor)
 
 let apply f a = flatMap (fun f -> map (fun a -> f a) a) f
 
-module Apply : BsAbstract.Interface.APPLY with type 'a t = 'a t = struct
+module Apply : BsBastet.Interface.APPLY with type 'a t = 'a t = struct
   include Functor
 
   let apply = apply
@@ -46,7 +46,7 @@ include Relude_Extensions_Apply.ApplyExtensions (Apply)
 
 let pure v = Done v
 
-module Applicative : BsAbstract.Interface.APPLICATIVE with type 'a t = 'a t =
+module Applicative : BsBastet.Interface.APPLICATIVE with type 'a t = 'a t =
 struct
   include Apply
 
@@ -57,7 +57,7 @@ include Relude_Extensions_Applicative.ApplicativeExtensions (Applicative)
 
 let bind : 'a 'b. 'a t -> ('a -> 'b t) -> 'b t = fun x f -> flatMap f x
 
-module Monad : BsAbstract.Interface.MONAD with type 'a t = 'a t = struct
+module Monad : BsBastet.Interface.MONAD with type 'a t = 'a t = struct
   include Applicative
 
   let flat_map = bind

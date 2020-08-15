@@ -22,7 +22,7 @@ let images string =
 
 let digitCount d = Relude.List.filter (( = ) d) >> Relude.List.length
 
-module ZeroCountOrd : BsAbstract.Interface.ORD with type t = string list =
+module ZeroCountOrd : BsBastet.Interface.ORD with type t = string list =
 struct
   let zeroCount = digitCount "0"
 

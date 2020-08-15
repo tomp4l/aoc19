@@ -15,7 +15,7 @@ var isJest = Relude_Option.isSome(Js_dict.get(process.env, "JEST_WORKER_ID"));
 
 function resolveIfNotJest(p) {
   if (isJest) {
-    return StackSafeFuture$Aoc19.never(/* () */0);
+    return StackSafeFuture$Aoc19.never(undefined);
   } else {
     return p;
   }
@@ -23,12 +23,12 @@ function resolveIfNotJest(p) {
 
 function loadDay(number) {
   var filename = __dirname + ("/../input/day" + (String(number) + ".txt"));
-  return resolveIfNotJest(StackSafeFuture$Aoc19.make((function (resolve) {
-                    Fs.readFile(filename, "utf-8", (function (param, data) {
-                            return Curry._1(resolve, data);
-                          }));
-                    return /* () */0;
-                  })));
+  return resolveIfNotJest(StackSafeFuture$Aoc19.make(function (resolve) {
+                  Fs.readFile(filename, "utf-8", (function (param, data) {
+                          return Curry._1(resolve, data);
+                        }));
+                  
+                }));
 }
 
 function separated(delimiter, number) {

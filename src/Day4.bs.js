@@ -12,92 +12,86 @@ var $great$great = Relude_Function.Infix.$great$great;
 function containsDoubleDigit(string) {
   return Curry._2(Relude_List.any, (function (search) {
                 return Relude_String.contains(search, string);
-              }), /* :: */[
-              "00",
-              /* :: */[
-                "11",
-                /* :: */[
-                  "22",
-                  /* :: */[
-                    "33",
-                    /* :: */[
-                      "44",
-                      /* :: */[
-                        "55",
-                        /* :: */[
-                          "66",
-                          /* :: */[
-                            "77",
-                            /* :: */[
-                              "88",
-                              /* :: */[
-                                "99",
-                                /* [] */0
-                              ]
-                            ]
-                          ]
-                        ]
-                      ]
-                    ]
-                  ]
-                ]
-              ]
-            ]);
-}
-
-function containsDoubleDigitAlone(string) {
-  var digits = Relude_String.splitList("", string);
-  if (digits) {
-    var match = digits[1];
-    if (match) {
-      var match$1 = match[1];
-      if (match$1) {
-        var match$2 = match$1[1];
-        if (match$2) {
-          var match$3 = match$2[1];
-          if (match$3) {
-            var match$4 = match$3[1];
-            if (match$4 && !match$4[1]) {
-              var c = match$1[0];
-              var b = match[0];
-              var a = digits[0];
-              if (a === b && b !== c) {
-                return true;
-              } else {
-                var d = match$2[0];
-                if (a !== b && b === c && c !== d) {
-                  return true;
-                } else {
-                  var d$1 = match$3[0];
-                  if (b !== c && c === d && d !== d$1) {
-                    return true;
-                  } else {
-                    var d$2 = match$4[0];
-                    if (c !== d && d === d$1 && d$1 !== d$2) {
-                      return true;
-                    } else if (d !== d$1) {
-                      return d$1 === d$2;
-                    } else {
-                      return false;
+              }), {
+              hd: "00",
+              tl: {
+                hd: "11",
+                tl: {
+                  hd: "22",
+                  tl: {
+                    hd: "33",
+                    tl: {
+                      hd: "44",
+                      tl: {
+                        hd: "55",
+                        tl: {
+                          hd: "66",
+                          tl: {
+                            hd: "77",
+                            tl: {
+                              hd: "88",
+                              tl: {
+                                hd: "99",
+                                tl: /* [] */0
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
-            } else {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+            });
+}
+
+function containsDoubleDigitAlone(string) {
+  var digits = Relude_String.splitList("", string);
+  if (!digits) {
+    return false;
+  }
+  var match = digits.tl;
+  if (!match) {
+    return false;
+  }
+  var match$1 = match.tl;
+  if (!match$1) {
+    return false;
+  }
+  var match$2 = match$1.tl;
+  if (!match$2) {
+    return false;
+  }
+  var match$3 = match$2.tl;
+  if (!match$3) {
+    return false;
+  }
+  var match$4 = match$3.tl;
+  if (!match$4) {
+    return false;
+  }
+  if (match$4.tl) {
+    return false;
+  }
+  var c = match$1.hd;
+  var b = match.hd;
+  var a = digits.hd;
+  if (a === b && b !== c) {
+    return true;
+  }
+  var d = match$2.hd;
+  if (a !== b && b === c && c !== d) {
+    return true;
+  }
+  var d$1 = match$3.hd;
+  if (b !== c && c === d && d !== d$1) {
+    return true;
+  }
+  var d$2 = match$4.hd;
+  if (c !== d && d === d$1 && d$1 !== d$2) {
+    return true;
+  } else if (d !== d$1) {
+    return d$1 === d$2;
   } else {
     return false;
   }

@@ -50,7 +50,7 @@ module ComputerState = struct
       relativeBase = Int64.of_int 0;
     }
 
-  let get { memory; pointer } = Memory.get pointer memory
+  let get { memory; pointer;_ } = Memory.get pointer memory
 
   let increment state =
     state.pointer <- Int64.add state.pointer (Int64.of_int 1)
@@ -60,9 +60,9 @@ module ComputerState = struct
     increment state;
     v
 
-  let position p { memory } = Memory.getFromMemory p memory
+  let position p { memory;_ } = Memory.getFromMemory p memory
 
-  let relative p { memory; relativeBase } =
+  let relative p { memory; relativeBase;_ } =
     Memory.get (Int64.add (Int64.of_string p) relativeBase) memory
 
   let incrementAndGetWithMode mode state =

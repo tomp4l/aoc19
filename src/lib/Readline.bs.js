@@ -14,10 +14,10 @@ function make(param) {
 }
 
 function question(readline, query) {
-  return StackSafeFuture$Aoc19.make((function (param) {
-                readline.question(query, param);
-                return /* () */0;
-              }));
+  return StackSafeFuture$Aoc19.make(function (param) {
+              readline.question(query, param);
+              
+            });
 }
 
 exports.defaultInput = defaultInput;
