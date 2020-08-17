@@ -59,6 +59,36 @@ function div(param, c) {
         ];
 }
 
+function addCoordinates(list) {
+  var loopX = function (l, y, x) {
+    if (l) {
+      return {
+              hd: [
+                [
+                  x,
+                  y
+                ],
+                l.hd
+              ],
+              tl: loopX(l.tl, y, x + 1 | 0)
+            };
+    } else {
+      return /* [] */0;
+    }
+  };
+  var loopY = function (l, y) {
+    if (l) {
+      return {
+              hd: loopX(l.hd, y, 0),
+              tl: loopY(l.tl, y + 1 | 0)
+            };
+    } else {
+      return /* [] */0;
+    }
+  };
+  return Curry._1(Relude_List.flatten, loopY(list, 0));
+}
+
 function output(toString, $$default, map) {
   var points = Curry._1(CoordMap.keys, map);
   var match = Relude_List.unzip(points);
@@ -103,5 +133,6 @@ exports.CoordMap = CoordMap;
 exports.add = add;
 exports.sub = sub;
 exports.div = div;
+exports.addCoordinates = addCoordinates;
 exports.output = output;
 /* CoordSet Not a pure module */

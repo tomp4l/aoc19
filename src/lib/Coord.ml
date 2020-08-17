@@ -27,6 +27,15 @@ let div (a, b) c = (a / c, b / c)
 external write : string -> unit = "write"
   [@@bs.val] [@@bs.scope "process.stdout"]
 
+let addCoordinates list =
+  let rec loopX l y x =
+    match l with v :: rest -> ((x, y), v) :: loopX rest y (x + 1) | [] -> []
+  in
+  let rec loopY l y =
+    match l with xs :: rest -> loopX xs y 0 :: loopY rest (y + 1) | [] -> []
+  in
+  Relude.List.flatten (loopY list 0)
+
 let output toString default map =
   let points = CoordMap.keys map in
   let xs, ys = Relude.List.unzip points in

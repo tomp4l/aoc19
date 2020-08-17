@@ -21,12 +21,12 @@
     "bs-bastet",
     "relude"
   ],
-  "bs-dev-dependencies":[
+  "bs-dev-dependencies": [
     "@glennsl/bs-jest"
   ],
   "warnings": {
     "number": "+A-4-102-42-48",
-    "error": "+A-3-4-44-102-103"
+    "error": "+A-3-4-26-27-44-103"
   },
   "namespace": true,
   "refmt": 3

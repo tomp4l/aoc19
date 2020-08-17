@@ -19,35 +19,6 @@ var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 var UnknownArea = Caml_exceptions.create("Day10-Aoc19.Space.UnknownArea");
 
 function fromString(s) {
-  var addCoordinates = function (list) {
-    var loopX = function (l, y, x) {
-      if (l) {
-        return {
-                hd: [
-                  [
-                    x,
-                    y
-                  ],
-                  l.hd
-                ],
-                tl: loopX(l.tl, y, x + 1 | 0)
-              };
-      } else {
-        return /* [] */0;
-      }
-    };
-    var loopY = function (l, y) {
-      if (l) {
-        return {
-                hd: loopX(l.hd, y, 0),
-                tl: loopY(l.tl, y + 1 | 0)
-              };
-      } else {
-        return /* [] */0;
-      }
-    };
-    return Curry._1(Relude_List.flatten, loopY(list, 0));
-  };
   var partial_arg = Relude_List.map(function ($$char) {
         switch ($$char) {
           case "#" :
@@ -62,7 +33,7 @@ function fromString(s) {
                 };
         }
       });
-  return Curry._1(Coord$Aoc19.CoordMap.fromList, addCoordinates(Relude_List.map(function (param) {
+  return Curry._1(Coord$Aoc19.CoordMap.fromList, Coord$Aoc19.addCoordinates(Relude_List.map(function (param) {
                         return Relude_Function.flipCompose((function (param) {
                                       return Relude_String.splitList("", param);
                                     }), partial_arg, param);

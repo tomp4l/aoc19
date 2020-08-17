@@ -8,19 +8,6 @@ module Space = struct
   exception UnknownArea of string
 
   let fromString s =
-    let addCoordinates list =
-      let rec loopX l y x =
-        match l with
-        | v :: rest -> ((x, y), v) :: loopX rest y (x + 1)
-        | [] -> []
-      in
-      let rec loopY l y =
-        match l with
-        | xs :: rest -> loopX xs y 0 :: loopY rest (y + 1)
-        | [] -> []
-      in
-      Relude.List.flatten (loopY list 0)
-    in
     let split =
       s
       |> Relude.String.splitList ~delimiter:"\n"
