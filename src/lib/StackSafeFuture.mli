@@ -8,6 +8,16 @@ module Functor : BsBastet.Interface.FUNCTOR with type 'a t = 'a t
 
 module Monad : BsBastet.Interface.MONAD with type 'a t = 'a t
 
+module Infix : sig
+  val ( >>= ) : 'a Monad.t -> ('a -> 'b Monad.t) -> 'b Monad.t
+
+  val ( =<< ) : ('a -> 'b Monad.t) -> 'a Monad.t -> 'b Monad.t
+
+  val ( >=> ) : ('a -> 'b Monad.t) -> ('b -> 'c Monad.t) -> 'a -> 'c Monad.t
+
+  val ( <=< ) : ('a -> 'b Monad.t) -> ('c -> 'a Monad.t) -> 'c -> 'b Monad.t
+end
+
 val make : (('a -> unit) -> unit) -> 'a t
 
 val map : ('a -> 'b) -> 'a t -> 'b t

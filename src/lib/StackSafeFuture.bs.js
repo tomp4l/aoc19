@@ -67,18 +67,23 @@ function make(resolver) {
     contents: []
   };
   var resolve = function (v) {
-    value.contents = Caml_option.some(v);
-    var _param;
-    while(true) {
-      var c = Relude_Array.head(callbacks.contents);
-      if (c === undefined) {
-        return ;
-      }
-      defaultExecutionContext(c);
-      callbacks.contents = Relude_Array.tailOrEmpty(callbacks.contents);
-      _param = undefined;
-      continue ;
-    };
+    var match = value.contents;
+    if (match !== undefined) {
+      return ;
+    } else {
+      value.contents = Caml_option.some(v);
+      var _param;
+      while(true) {
+        var c = Relude_Array.head(callbacks.contents);
+        if (c === undefined) {
+          return ;
+        }
+        defaultExecutionContext(c);
+        callbacks.contents = Relude_Array.tailOrEmpty(callbacks.contents);
+        _param = undefined;
+        continue ;
+      };
+    }
   };
   Curry._1(resolver, resolve);
   return /* Future */{
@@ -179,6 +184,23 @@ var Monad = {
 
 var include$3 = Relude_Extensions_Monad.MonadExtensions(Monad);
 
+var Infix = Relude_Extensions_Monad.MonadInfix(Monad);
+
+var Infix_$great$great$eq = Infix.$great$great$eq;
+
+var Infix_$eq$less$less = Infix.$eq$less$less;
+
+var Infix_$great$eq$great = Infix.$great$eq$great;
+
+var Infix_$less$eq$less = Infix.$less$eq$less;
+
+var Infix$1 = {
+  $great$great$eq: Infix_$great$great$eq,
+  $eq$less$less: Infix_$eq$less$less,
+  $great$eq$great: Infix_$great$eq$great,
+  $less$eq$less: Infix_$less$eq$less
+};
+
 var flipMap = include.flipMap;
 
 var $$void = include.$$void;
@@ -239,6 +261,7 @@ exports.Apply = Apply;
 exports.Applicative = Applicative;
 exports.Functor = Functor;
 exports.Monad = Monad;
+exports.Infix = Infix$1;
 exports.make = make;
 exports.map = map;
 exports.tap = tap;

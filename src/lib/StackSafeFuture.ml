@@ -47,8 +47,11 @@ let make (resolver : ('a -> unit) -> unit) : 'a t =
     | None -> ()
   in
   let resolve v =
-    let () = value := Some v in
-    loop ()
+    match !value with
+    | None ->
+        let () = value := Some v in
+        loop ()
+    | Some _ -> ()
   in
   let () = resolver resolve in
   Future (value, callbacks, ec)
@@ -115,3 +118,4 @@ module Monad : BsBastet.Interface.MONAD with type 'a t = 'a t = struct
 end
 
 include Relude_Extensions_Monad.MonadExtensions (Monad)
+module Infix = Relude.Extensions.Monad.MonadInfix (Monad)
