@@ -2,9 +2,8 @@ open Jest
 open Day18
 
 let () =
-  let maze =
-    Maze.fromString
-      {j|#################
+  let mazeString =
+    {j|#################
 #i.G..c...e..H.p#
 ########.########
 #j.A..b...f..D.o#
@@ -14,10 +13,11 @@ let () =
 #l.F..d...h..C.m#
 #################|j}
   in
+  let maze = Maze.fromString mazeString false in
   describe "local djikstras" (fun () ->
       let open Expect in
       test "collects all keys with none collected" (fun () ->
-          expect (Maze.nextKeys KeySet.empty Start maze)
+          expect (Maze.nextKeys KeySet.empty (Start 0) maze)
           |> toEqual
                [
                  ("a", 3);
@@ -30,7 +30,7 @@ let () =
                  ("h", 5);
                ]);
       test "ignores a collected key" (fun () ->
-          expect (Maze.nextKeys (KeySet.fromList [ "a" ]) Start maze)
+          expect (Maze.nextKeys (KeySet.fromList [ "a" ]) (Start 0) maze)
           |> toEqual
                [
                  ("b", 3);
@@ -42,7 +42,7 @@ let () =
                  ("h", 5);
                ]);
       test "collect through open door" (fun () ->
-          expect (Maze.nextKeys (KeySet.fromList [ "a"; "e" ]) Start maze)
+          expect (Maze.nextKeys (KeySet.fromList [ "a"; "e" ]) (Start 0) maze)
           |> toEqual
                [
                  ("b", 3);
@@ -57,7 +57,7 @@ let () =
           expect
             (Maze.nextKeys
                (KeySet.fromList [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ])
-               Start maze)
+               (Start 0) maze)
           |> toEqual
                [
                  ("j", 8);
@@ -91,7 +91,7 @@ let () =
                     "o";
                     "p";
                   ])
-               Start maze)
+               (Start 0) maze)
           |> toEqual []);
       ());
   describe "count of keys" (fun () ->
@@ -101,4 +101,4 @@ let () =
   describe "finds the shortest way to collect all keys" (fun () ->
       let open Expect in
       test "can count the keys" (fun () ->
-          expect (Maze.collectAllKeys maze) |> toBe 136))
+          expect (Maze.collectAllKeys mazeString) |> toBe 136))

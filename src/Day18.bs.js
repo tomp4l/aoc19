@@ -18,24 +18,36 @@ var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
 
 function compare(a, b) {
-  if (typeof a === "number") {
-    if (typeof b === "number") {
-      return "equal_to";
-    } else {
-      return "greater_than";
-    }
-  } else if (a.TAG) {
-    if (typeof b === "number") {
-      return "less_than";
-    } else if (b.TAG) {
-      return Curry._2(Relude_String.Ord.compare, a._0, b._0);
-    } else {
-      return "greater_than";
-    }
-  } else if (typeof b === "number" || b.TAG) {
-    return "less_than";
-  } else {
-    return Curry._2(Relude_String.Ord.compare, a._0, b._0);
+  switch (a.TAG | 0) {
+    case /* Start */0 :
+        switch (b.TAG | 0) {
+          case /* Start */0 :
+              return Curry._2(Relude_Int.Ord.compare, a._0, b._0);
+          case /* Key */1 :
+          case /* Door */2 :
+              return "greater_than";
+          
+        }
+    case /* Key */1 :
+        switch (b.TAG | 0) {
+          case /* Key */1 :
+              return Curry._2(Relude_String.Ord.compare, a._0, b._0);
+          case /* Start */0 :
+          case /* Door */2 :
+              return "less_than";
+          
+        }
+    case /* Door */2 :
+        switch (b.TAG | 0) {
+          case /* Start */0 :
+              return "less_than";
+          case /* Key */1 :
+              return "greater_than";
+          case /* Door */2 :
+              return Curry._2(Relude_String.Ord.compare, a._0, b._0);
+          
+        }
+    
   }
 }
 
@@ -142,12 +154,38 @@ var PointWithCollectedKeys = {
   $$Map: $$Map
 };
 
+function comparePointOfIntestSet(_a, _b) {
+  while(true) {
+    var b = _b;
+    var a = _a;
+    var match = Curry._1(PointOfInterestSet.maximum, a);
+    var match$1 = Curry._1(PointOfInterestSet.maximum, b);
+    if (match === undefined) {
+      if (match$1 !== undefined) {
+        return "less_than";
+      } else {
+        return "equal_to";
+      }
+    }
+    if (match$1 === undefined) {
+      return "greater_than";
+    }
+    var c = compare(match, match$1);
+    if (c !== "equal_to") {
+      return c;
+    }
+    _b = Curry._2(PointOfInterestSet.remove, match$1, b);
+    _a = Curry._2(PointOfInterestSet.remove, match, a);
+    continue ;
+  };
+}
+
 function compare$4(a, b) {
   var compareDistance = Curry._2(Relude_Int.Ord.compare, a.distance, b.distance);
   if (compareDistance !== "equal_to") {
     return compareDistance;
   }
-  var compareKey = compare(a.point, b.point);
+  var compareKey = comparePointOfIntestSet(a.points, b.points);
   if (compareKey === "equal_to") {
     return Curry._2(Relude_Int.compare, a.collectedKeys, b.collectedKeys);
   } else {
@@ -166,9 +204,13 @@ var Ord$2 = {
 
 var $$Set$1 = Relude_Set.WithOrd(Ord$2);
 
+var $$Map$1 = Relude_Map.WithOrd(Ord$2);
+
 var CollectionState = {
+  comparePointOfIntestSet: comparePointOfIntestSet,
   Ord: Ord$2,
-  $$Set: $$Set$1
+  $$Set: $$Set$1,
+  $$Map: $$Map$1
 };
 
 var UnknownCell = Caml_exceptions.create("Day18-Aoc19.Maze.UnknownCell");
@@ -181,13 +223,16 @@ function charToCell(c) {
         return /* Floor */1;
     case "@" :
         return /* PointOfInterest */{
-                _0: /* Start */0
+                _0: {
+                  TAG: /* Start */0,
+                  _0: 0
+                }
               };
     default:
       if (Relude_String.toUpperCase(c) === c) {
         return /* PointOfInterest */{
                 _0: {
-                  TAG: /* Door */1,
+                  TAG: /* Door */2,
                   _0: Relude_String.toLowerCase(c)
                 }
               };
@@ -195,7 +240,7 @@ function charToCell(c) {
       if (Relude_String.toLowerCase(c) === c) {
         return /* PointOfInterest */{
                 _0: {
-                  TAG: /* Key */0,
+                  TAG: /* Key */1,
                   _0: c
                 }
               };
@@ -319,13 +364,132 @@ function mapToGraph(map) {
                   }), Curry._1(Coord$Aoc19.CoordMap.values, map)));
 }
 
-function fromString(string) {
+function fromString(string, hasFourRobots) {
   var partial_arg = Relude_List.map(charToCell);
-  return mapToGraph(Curry._1(Coord$Aoc19.CoordMap.fromList, Coord$Aoc19.addCoordinates(Relude_List.map(function (param) {
-                            return Relude_Function.flipCompose((function (param) {
-                                          return Relude_String.splitAsList("", param);
-                                        }), partial_arg, param);
-                          })(Relude_String.splitAsList("\n", string)))));
+  var coords = Curry._1(Coord$Aoc19.CoordMap.fromList, Coord$Aoc19.addCoordinates(Relude_List.map(function (param) {
+                  return Relude_Function.flipCompose((function (param) {
+                                return Relude_String.splitAsList("", param);
+                              }), partial_arg, param);
+                })(Relude_String.splitAsList("\n", string))));
+  var tmp;
+  if (hasFourRobots) {
+    var match = Relude_Option.getOrThrow(Curry._2(Coord$Aoc19.CoordMap.find, (function (param, c) {
+                return Caml_obj.caml_equal(c, /* PointOfInterest */{
+                            _0: {
+                              TAG: /* Start */0,
+                              _0: 0
+                            }
+                          });
+              }), coords));
+    var match$1 = match[0];
+    var y = match$1[1];
+    var x = match$1[0];
+    tmp = Curry._2(Coord$Aoc19.CoordMap.mergeMany, Relude_List.toArray({
+              hd: [
+                [
+                  x,
+                  y
+                ],
+                /* Wall */0
+              ],
+              tl: {
+                hd: [
+                  [
+                    x + 1 | 0,
+                    y
+                  ],
+                  /* Wall */0
+                ],
+                tl: {
+                  hd: [
+                    [
+                      x - 1 | 0,
+                      y
+                    ],
+                    /* Wall */0
+                  ],
+                  tl: {
+                    hd: [
+                      [
+                        x,
+                        y + 1 | 0
+                      ],
+                      /* Wall */0
+                    ],
+                    tl: {
+                      hd: [
+                        [
+                          x,
+                          y - 1 | 0
+                        ],
+                        /* Wall */0
+                      ],
+                      tl: {
+                        hd: [
+                          [
+                            x - 1 | 0,
+                            y - 1 | 0
+                          ],
+                          /* PointOfInterest */{
+                            _0: {
+                              TAG: /* Start */0,
+                              _0: 1
+                            }
+                          }
+                        ],
+                        tl: {
+                          hd: [
+                            [
+                              x + 1 | 0,
+                              y - 1 | 0
+                            ],
+                            /* PointOfInterest */{
+                              _0: {
+                                TAG: /* Start */0,
+                                _0: 2
+                              }
+                            }
+                          ],
+                          tl: {
+                            hd: [
+                              [
+                                x - 1 | 0,
+                                y + 1 | 0
+                              ],
+                              /* PointOfInterest */{
+                                _0: {
+                                  TAG: /* Start */0,
+                                  _0: 3
+                                }
+                              }
+                            ],
+                            tl: {
+                              hd: [
+                                [
+                                  x + 1 | 0,
+                                  y + 1 | 0
+                                ],
+                                /* PointOfInterest */{
+                                  _0: {
+                                    TAG: /* Start */0,
+                                    _0: 4
+                                  }
+                                }
+                              ],
+                              tl: /* [] */0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }), coords);
+  } else {
+    tmp = coords;
+  }
+  return mapToGraph(tmp);
 }
 
 function nextKeys$prime(map, collectedKeys, _distances, _pointsNotVisited, _keys) {
@@ -335,12 +499,14 @@ function nextKeys$prime(map, collectedKeys, _distances, _pointsNotVisited, _keys
     var distances = _distances;
     var filterNotReachedKeysOrLockedDoors = Curry._1(PointOfInterestMap.filterNot, (function(keys){
         return function (p, param) {
-          if (typeof p === "number") {
-            return false;
-          } else if (p.TAG) {
-            return !contains(p._0, collectedKeys);
-          } else {
-            return Curry._2(Relude_StringMap.contains, p._0, keys);
+          switch (p.TAG | 0) {
+            case /* Start */0 :
+                return false;
+            case /* Key */1 :
+                return Curry._2(Relude_StringMap.contains, p._0, keys);
+            case /* Door */2 :
+                return !contains(p._0, collectedKeys);
+            
           }
         }
         }(keys)));
@@ -362,10 +528,13 @@ function nextKeys$prime(map, collectedKeys, _distances, _pointsNotVisited, _keys
           }(closest)))(Curry._1(PointOfInterestMap.toList, Curry._1(filterNotReachedKeysOrLockedDoors, Curry._3(PointOfInterestMap.getOrElse, closest.point, Curry._1(PointOfInterestMap.make, undefined), map))));
     var match = Relude_List.partition((function (pd) {
             var k = pd.point;
-            if (typeof k === "number" || k.TAG) {
-              return false;
-            } else {
-              return !contains(k._0, collectedKeys);
+            switch (k.TAG | 0) {
+              case /* Key */1 :
+                  return !contains(k._0, collectedKeys);
+              case /* Start */0 :
+              case /* Door */2 :
+                  return false;
+              
             }
           }), reachable);
     var closerNotToCollect = Relude_List.filter((function(distances){
@@ -383,13 +552,16 @@ function nextKeys$prime(map, collectedKeys, _distances, _pointsNotVisited, _keys
               return Curry._3(Relude_StringMap.set, param[0], param[1], acc);
             }), keys)(Relude_List.mapOption((function (param) {
                 var k = param.point;
-                if (typeof k === "number" || k.TAG) {
-                  return ;
-                } else {
-                  return [
-                          k._0,
-                          param.distance
-                        ];
+                switch (k.TAG | 0) {
+                  case /* Key */1 :
+                      return [
+                              k._0,
+                              param.distance
+                            ];
+                  case /* Start */0 :
+                  case /* Door */2 :
+                      return ;
+                  
                 }
               }), match[0]));
     var nextDistances = Relude_List.foldLeft((function (acc, pwd) {
@@ -427,12 +599,46 @@ function nextKeys(collectedKeys, current, map) {
 
 function numberOfKeys(map) {
   return Curry._3(PointOfInterestMap.foldLeft, (function (c, k, param) {
-                if (typeof k === "number" || k.TAG) {
-                  return c;
-                } else {
-                  return c + 1 | 0;
+                switch (k.TAG | 0) {
+                  case /* Key */1 :
+                      return c + 1 | 0;
+                  case /* Start */0 :
+                  case /* Door */2 :
+                      return c;
+                  
                 }
               }), 0, map);
+}
+
+function collectKeysFromPoints(_pointsFrom, closest, _newStates, nextKeys) {
+  while(true) {
+    var newStates = _newStates;
+    var pointsFrom = _pointsFrom;
+    var point = Curry._1(PointOfInterestSet.minimum, pointsFrom);
+    if (point === undefined) {
+      return newStates;
+    }
+    var collectedKeys = closest.collectedKeys;
+    var distance = closest.distance;
+    var points = closest.points;
+    var keys = Curry._2(nextKeys, collectedKeys, point);
+    var newStates$prime = Relude_List.map((function(points,distance,collectedKeys,point){
+          return function (param) {
+            var k = param[0];
+            return {
+                    points: Curry._2(PointOfInterestSet.add, {
+                          TAG: /* Key */1,
+                          _0: k
+                        }, Curry._2(PointOfInterestSet.remove, point, points)),
+                    distance: distance + param[1] | 0,
+                    collectedKeys: collectedKeys | sToT(k)
+                  };
+          }
+          }(points,distance,collectedKeys,point)))(keys);
+    _newStates = Relude_List.concat(newStates, newStates$prime);
+    _pointsFrom = Curry._2(PointOfInterestSet.remove, point, pointsFrom);
+    continue ;
+  };
 }
 
 function collectAllKeys$prime(targetKeyCount, _ongoingStates, _bestDistances, nextKeys) {
@@ -444,36 +650,23 @@ function collectAllKeys$prime(targetKeyCount, _ongoingStates, _bestDistances, ne
       return closest.distance;
     }
     var statesWithoutClosest = Curry._2($$Set$1.remove, closest, ongoingStates);
-    var collectedKeys = closest.collectedKeys;
-    var distance = closest.distance;
-    var keys = Curry._2(nextKeys, collectedKeys, closest.point);
-    var newStates = Relude_List.map((function(distance,collectedKeys){
-          return function (param) {
-            var k = param[0];
-            return {
-                    point: {
-                      TAG: /* Key */0,
-                      _0: k
-                    },
-                    distance: distance + param[1] | 0,
-                    collectedKeys: collectedKeys | sToT(k)
-                  };
-          }
-          }(distance,collectedKeys)))(keys);
+    var newStates = collectKeysFromPoints(closest.points, closest, /* [] */0, nextKeys);
     var closerStates = Curry._2($$Set$1.filter, (function(bestDistances){
         return function (param) {
           var distance = param.distance;
           return Relude_Option.getOrElse(true, Relude_Option.map((function (d) {
                             return d > distance;
-                          }), Curry._2($$Map.get, {
-                              point: param.point,
+                          }), Curry._2($$Map$1.get, {
+                              points: param.points,
+                              distance: 0,
                               collectedKeys: param.collectedKeys
                             }, bestDistances)));
         }
         }(bestDistances)), Curry._1($$Set$1.fromList, newStates));
     var newBestDistances = Curry._3($$Set$1.foldLeft, (function (acc, param) {
-            return Curry._3($$Map.set, {
-                        point: param.point,
+            return Curry._3($$Map$1.set, {
+                        points: param.points,
+                        distance: 0,
                         collectedKeys: param.collectedKeys
                       }, param.distance, acc);
           }), bestDistances, closerStates);
@@ -484,12 +677,11 @@ function collectAllKeys$prime(targetKeyCount, _ongoingStates, _bestDistances, ne
   };
 }
 
-function collectAllKeys(map) {
-  var targetKeyCount = numberOfKeys(map);
+function nextKeysForMap(map) {
   var cache = {
     contents: Curry._1($$Map.make, undefined)
   };
-  var nextKeysForMap = function (collectedKeys, current) {
+  return function (collectedKeys, current) {
     var key = {
       point: current,
       collectedKeys: collectedKeys
@@ -502,23 +694,112 @@ function collectAllKeys(map) {
     cache.contents = Curry._3($$Map.set, key, v$1, cache.contents);
     return v$1;
   };
+}
+
+function collectAllKeys(string) {
+  var map = fromString(string, false);
+  var targetKeyCount = numberOfKeys(map);
   return collectAllKeys$prime(targetKeyCount, Curry._1($$Set$1.fromList, {
                   hd: {
-                    point: /* Start */0,
+                    points: Curry._1(PointOfInterestSet.fromList, {
+                          hd: {
+                            TAG: /* Start */0,
+                            _0: 0
+                          },
+                          tl: /* [] */0
+                        }),
                     distance: 0,
                     collectedKeys: 0
                   },
                   tl: /* [] */0
-                }), Curry._1($$Map.fromList, {
+                }), Curry._1($$Map$1.fromList, {
                   hd: [
                     {
-                      point: /* Start */0,
+                      points: Curry._1(PointOfInterestSet.fromList, {
+                            hd: {
+                              TAG: /* Start */0,
+                              _0: 0
+                            },
+                            tl: /* [] */0
+                          }),
+                      distance: 0,
                       collectedKeys: 0
                     },
                     0
                   ],
                   tl: /* [] */0
-                }), nextKeysForMap);
+                }), nextKeysForMap(map));
+}
+
+function collectAllKeysFourRobots(string) {
+  var map = fromString(string, true);
+  var targetKeyCount = numberOfKeys(map);
+  return collectAllKeys$prime(targetKeyCount, Curry._1($$Set$1.fromList, {
+                  hd: {
+                    points: Curry._1(PointOfInterestSet.fromList, {
+                          hd: {
+                            TAG: /* Start */0,
+                            _0: 1
+                          },
+                          tl: {
+                            hd: {
+                              TAG: /* Start */0,
+                              _0: 2
+                            },
+                            tl: {
+                              hd: {
+                                TAG: /* Start */0,
+                                _0: 3
+                              },
+                              tl: {
+                                hd: {
+                                  TAG: /* Start */0,
+                                  _0: 4
+                                },
+                                tl: /* [] */0
+                              }
+                            }
+                          }
+                        }),
+                    distance: 0,
+                    collectedKeys: 0
+                  },
+                  tl: /* [] */0
+                }), Curry._1($$Map$1.fromList, {
+                  hd: [
+                    {
+                      points: Curry._1(PointOfInterestSet.fromList, {
+                            hd: {
+                              TAG: /* Start */0,
+                              _0: 1
+                            },
+                            tl: {
+                              hd: {
+                                TAG: /* Start */0,
+                                _0: 2
+                              },
+                              tl: {
+                                hd: {
+                                  TAG: /* Start */0,
+                                  _0: 3
+                                },
+                                tl: {
+                                  hd: {
+                                    TAG: /* Start */0,
+                                    _0: 4
+                                  },
+                                  tl: /* [] */0
+                                }
+                              }
+                            }
+                          }),
+                      distance: 0,
+                      collectedKeys: 0
+                    },
+                    0
+                  ],
+                  tl: /* [] */0
+                }), nextKeysForMap(map));
 }
 
 var Maze = {
@@ -529,16 +810,24 @@ var Maze = {
   nextKeys$prime: nextKeys$prime,
   nextKeys: nextKeys,
   numberOfKeys: numberOfKeys,
+  collectKeysFromPoints: collectKeysFromPoints,
   collectAllKeys$prime: collectAllKeys$prime,
-  collectAllKeys: collectAllKeys
+  nextKeysForMap: nextKeysForMap,
+  collectAllKeys: collectAllKeys,
+  collectAllKeysFourRobots: collectAllKeysFourRobots
 };
 
 var input = InputLoader$Aoc19.loadDay(18);
 
 StackSafeFuture$Aoc19.tap(function (param) {
-        return Relude_Function.flipCompose((function (param) {
-                      return Relude_Function.flipCompose(fromString, collectAllKeys, param);
-                    }), (function (prim) {
+        return Relude_Function.flipCompose(collectAllKeys, (function (prim) {
+                      console.log(prim);
+                      
+                    }), param);
+      })(input);
+
+StackSafeFuture$Aoc19.tap(function (param) {
+        return Relude_Function.flipCompose(collectAllKeysFourRobots, (function (prim) {
                       console.log(prim);
                       
                     }), param);

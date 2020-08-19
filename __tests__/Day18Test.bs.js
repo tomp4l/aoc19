@@ -4,7 +4,9 @@
 var Jest = require("@glennsl/bs-jest/src/jest.js");
 var Day18$Aoc19 = require("../src/Day18.bs.js");
 
-var maze = Day18$Aoc19.Maze.fromString("#################\n#i.G..c...e..H.p#\n########.########\n#j.A..b...f..D.o#\n########@########\n#k.E..a...g..B.n#\n########.########\n#l.F..d...h..C.m#\n#################");
+var mazeString = "#################\n#i.G..c...e..H.p#\n########.########\n#j.A..b...f..D.o#\n########@########\n#k.E..a...g..B.n#\n########.########\n#l.F..d...h..C.m#\n#################";
+
+var maze = Day18$Aoc19.Maze.fromString(mazeString, false);
 
 Jest.describe("local djikstras", (function (param) {
         Jest.test("collects all keys with none collected", (function (param) {
@@ -56,7 +58,10 @@ Jest.describe("local djikstras", (function (param) {
                                 }
                               }
                             }
-                          }, Jest.Expect.expect(Day18$Aoc19.Maze.nextKeys(Day18$Aoc19.KeySet.empty, /* Start */0, maze)));
+                          }, Jest.Expect.expect(Day18$Aoc19.Maze.nextKeys(Day18$Aoc19.KeySet.empty, {
+                                    TAG: /* Start */0,
+                                    _0: 0
+                                  }, maze)));
               }));
         Jest.test("ignores a collected key", (function (param) {
                 return Jest.Expect.toEqual({
@@ -104,7 +109,10 @@ Jest.describe("local djikstras", (function (param) {
                           }, Jest.Expect.expect(Day18$Aoc19.Maze.nextKeys(Day18$Aoc19.KeySet.fromList({
                                         hd: "a",
                                         tl: /* [] */0
-                                      }), /* Start */0, maze)));
+                                      }), {
+                                    TAG: /* Start */0,
+                                    _0: 0
+                                  }, maze)));
               }));
         Jest.test("collect through open door", (function (param) {
                 return Jest.Expect.toEqual({
@@ -155,7 +163,10 @@ Jest.describe("local djikstras", (function (param) {
                                           hd: "e",
                                           tl: /* [] */0
                                         }
-                                      }), /* Start */0, maze)));
+                                      }), {
+                                    TAG: /* Start */0,
+                                    _0: 0
+                                  }, maze)));
               }));
         Jest.test("all near collected", (function (param) {
                 return Jest.Expect.toEqual({
@@ -230,7 +241,10 @@ Jest.describe("local djikstras", (function (param) {
                                             }
                                           }
                                         }
-                                      }), /* Start */0, maze)));
+                                      }), {
+                                    TAG: /* Start */0,
+                                    _0: 0
+                                  }, maze)));
               }));
         Jest.test("all collected", (function (param) {
                 return Jest.Expect.toEqual(/* [] */0, Jest.Expect.expect(Day18$Aoc19.Maze.nextKeys(Day18$Aoc19.KeySet.fromList({
@@ -281,7 +295,10 @@ Jest.describe("local djikstras", (function (param) {
                                             }
                                           }
                                         }
-                                      }), /* Start */0, maze)));
+                                      }), {
+                                    TAG: /* Start */0,
+                                    _0: 0
+                                  }, maze)));
               }));
         
       }));
@@ -294,7 +311,7 @@ Jest.describe("count of keys", (function (param) {
 
 Jest.describe("finds the shortest way to collect all keys", (function (param) {
         return Jest.test("can count the keys", (function (param) {
-                      return Jest.Expect.toBe(136, Jest.Expect.expect(Day18$Aoc19.Maze.collectAllKeys(maze)));
+                      return Jest.Expect.toBe(136, Jest.Expect.expect(Day18$Aoc19.Maze.collectAllKeys(mazeString)));
                     }));
       }));
 

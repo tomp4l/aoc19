@@ -1,6 +1,6 @@
 let ( >> ) = Relude.Function.flipCompose
 
-type pointOfInterest = Start | Key of string | Door of string
+type pointOfInterest = Start of int | Key of string | Door of string
 
 type cell = Wall | Floor | PointOfInterest of pointOfInterest
 
@@ -10,9 +10,9 @@ module PointOfInterestOrd :
 
   let compare a b =
     match (a, b) with
-    | Start, Start -> `equal_to
-    | Start, _ -> `greater_than
-    | _, Start -> `less_than
+    | Start i, Start j -> Relude.Int.Ord.compare i j
+    | Start _, _ -> `greater_than
+    | _, Start _ -> `less_than
     | Key a, Key b -> Relude.String.Ord.compare a b
     | Door a, Door b -> Relude.String.Ord.compare a b
     | Door _, Key _ -> `greater_than
@@ -84,10 +84,23 @@ end
 
 module CollectionState = struct
   type collectionState = {
-    point : pointOfInterest;
+    points : PointOfInterestSet.t;
     distance : int;
     collectedKeys : KeySet.t;
   }
+
+  let rec comparePointOfIntestSet a b =
+    match (PointOfInterestSet.maximum a, PointOfInterestSet.maximum b) with
+    | None, None -> `equal_to
+    | None, Some _ -> `less_than
+    | Some _, None -> `greater_than
+    | Some av, Some bv ->
+        let c = PointOfInterestOrd.compare av bv in
+        if c == `equal_to then
+          comparePointOfIntestSet
+            (PointOfInterestSet.remove av a)
+            (PointOfInterestSet.remove bv b)
+        else c
 
   module Ord : BsBastet.Interface.ORD with type t = collectionState = struct
     type t = collectionState
@@ -95,7 +108,7 @@ module CollectionState = struct
     let compare a b =
       let compareDistance = Relude.Int.Ord.compare a.distance b.distance in
       if compareDistance = `equal_to then
-        let compareKey = PointOfInterestOrd.compare a.point b.point in
+        let compareKey = comparePointOfIntestSet a.points b.points in
         if compareKey = `equal_to then
           KeySet.compare a.collectedKeys b.collectedKeys
         else compareKey
@@ -105,6 +118,7 @@ module CollectionState = struct
   end
 
   module Set = Relude.Set.WithOrd (Ord)
+  module Map = Relude.Map.WithOrd (Ord)
 end
 
 module Maze = struct
@@ -118,7 +132,7 @@ module Maze = struct
     match c with
     | "#" -> Wall
     | "." -> Floor
-    | "@" -> PointOfInterest Start
+    | "@" -> PointOfInterest (Start 0)
     | uppercase when Relude.String.toUpperCase uppercase = uppercase ->
         PointOfInterest (Door (Relude.String.toLowerCase uppercase))
     | lowercase when Relude.String.toLowerCase lowercase = lowercase ->
@@ -173,11 +187,35 @@ module Maze = struct
       (fun g p -> PointOfInterestMap.set p (pointsFromPoint p) g)
       emptyGraph pointsOfInterest
 
-  let fromString string =
+  let fromString string hasFourRobots =
     Relude.String.splitAsList ~delimiter:"\n" string
     |> Relude.List.map
          (Relude.String.splitAsList ~delimiter:"" >> Relude.List.map charToCell)
-    |> Coord.addCoordinates |> Coord.CoordMap.fromList |> mapToGraph
+    |> Coord.addCoordinates |> Coord.CoordMap.fromList
+    |> (fun coords ->
+         if hasFourRobots then
+           let (x, y), _ =
+             Coord.CoordMap.find
+               (fun _ c -> c = PointOfInterest (Start 0))
+               coords
+             |> Relude.Option.getOrThrow
+           in
+           coords
+           |> Coord.CoordMap.mergeMany
+                (Relude.List.toArray
+                   [
+                     ((x, y), Wall);
+                     ((x + 1, y), Wall);
+                     ((x - 1, y), Wall);
+                     ((x, y + 1), Wall);
+                     ((x, y - 1), Wall);
+                     ((x - 1, y - 1), PointOfInterest (Start 1));
+                     ((x + 1, y - 1), PointOfInterest (Start 2));
+                     ((x - 1, y + 1), PointOfInterest (Start 3));
+                     ((x + 1, y + 1), PointOfInterest (Start 4));
+                   ])
+         else coords)
+    |> mapToGraph
 
   let rec nextKeys' map collectedKeys distances pointsNotVisited keys =
     let filterNotReachedKeysOrLockedDoors =
@@ -272,6 +310,32 @@ module Maze = struct
       (fun c k _ -> match k with Key _ -> c + 1 | _ -> c)
       0 map
 
+  let rec collectKeysFromPoints pointsFrom closest newStates nextKeys =
+    match PointOfInterestSet.minimum pointsFrom with
+    | None -> newStates
+    | Some point ->
+        let CollectionState.{ distance; collectedKeys; points } = closest in
+        let keys = nextKeys collectedKeys point in
+        let newStates' =
+          Relude.List.map
+            (fun (k, d) ->
+              CollectionState.
+                {
+                  points =
+                    points
+                    |> PointOfInterestSet.remove point
+                    |> PointOfInterestSet.add (Key k);
+                  collectedKeys = KeySet.add k collectedKeys;
+                  distance = distance + d;
+                })
+            keys
+        in
+        collectKeysFromPoints
+          (PointOfInterestSet.remove point pointsFrom)
+          closest
+          (Relude.List.concat newStates newStates')
+          nextKeys
+
   let rec collectAllKeys' targetKeyCount ongoingStates bestDistances nextKeys =
     let closest =
       CollectionState.Set.minimum ongoingStates |> Relude.Option.getOrThrow
@@ -282,23 +346,13 @@ module Maze = struct
       let statesWithoutClosest =
         CollectionState.Set.remove closest ongoingStates
       in
-      let CollectionState.{ distance; collectedKeys; point } = closest in
-      let keys = nextKeys collectedKeys point in
-      let newStates =
-        Relude.List.map
-          (fun (k, d) ->
-            CollectionState.
-              {
-                point = Key k;
-                collectedKeys = KeySet.add k collectedKeys;
-                distance = distance + d;
-              })
-          keys
-      in
+      let CollectionState.{ points; _ } = closest in
+      let newStates = collectKeysFromPoints points closest [] nextKeys in
       let closerStates =
         CollectionState.Set.filter
-          (fun CollectionState.{ point; collectedKeys; distance } ->
-            PointWithCollectedKeys.Map.get { point; collectedKeys }
+          (fun CollectionState.{ points; collectedKeys; distance } ->
+            CollectionState.Map.get
+              { points; collectedKeys; distance = 0 }
               bestDistances
             |> Relude.Option.map (fun d -> d > distance)
             |> Relude.Option.getOrElse true)
@@ -306,8 +360,10 @@ module Maze = struct
       in
       let newBestDistances =
         CollectionState.Set.foldLeft
-          (fun acc CollectionState.{ point; collectedKeys; distance } ->
-            PointWithCollectedKeys.Map.set { point; collectedKeys } distance acc)
+          (fun acc CollectionState.{ points; collectedKeys; distance } ->
+            CollectionState.Map.set
+              { points; collectedKeys; distance = 0 }
+              distance acc)
           bestDistances closerStates
       in
       let states =
@@ -315,28 +371,70 @@ module Maze = struct
       in
       collectAllKeys' targetKeyCount states newBestDistances nextKeys
 
-  let collectAllKeys map =
+  let nextKeysForMap map =
+    let cache = ref (PointWithCollectedKeys.Map.make ()) in
+    fun collectedKeys current ->
+      let key = PointWithCollectedKeys.{ point = current; collectedKeys } in
+      match PointWithCollectedKeys.Map.get key !cache with
+      | Some v -> v
+      | None ->
+          let v = nextKeys collectedKeys current map in
+          let _ = cache := PointWithCollectedKeys.Map.set key v !cache in
+          v
+
+  let collectAllKeys string =
+    let map = fromString string false in
     let targetKeyCount = numberOfKeys map in
-    let nextKeysForMap =
-      let cache = ref (PointWithCollectedKeys.Map.make ()) in
-      fun collectedKeys current ->
-        let key = PointWithCollectedKeys.{ point = current; collectedKeys } in
-        match PointWithCollectedKeys.Map.get key !cache with
-        | Some v -> v
-        | None ->
-            let v = nextKeys collectedKeys current map in
-            let _ = cache := PointWithCollectedKeys.Map.set key v !cache in
-            v
-    in
     collectAllKeys' targetKeyCount
       (CollectionState.Set.fromList
-         [ { point = Start; distance = 0; collectedKeys = KeySet.empty } ])
-      (PointWithCollectedKeys.Map.fromList
-         [ ({ point = Start; collectedKeys = KeySet.empty }, 0) ])
-      nextKeysForMap
+         [
+           {
+             points = PointOfInterestSet.fromList [ Start 0 ];
+             distance = 0;
+             collectedKeys = KeySet.empty;
+           };
+         ])
+      (CollectionState.Map.fromList
+         [
+           ( {
+               points = PointOfInterestSet.fromList [ Start 0 ];
+               collectedKeys = KeySet.empty;
+               distance = 0;
+             },
+             0 );
+         ])
+      (nextKeysForMap map)
+
+  let collectAllKeysFourRobots string =
+    let map = fromString string true in
+    let targetKeyCount = numberOfKeys map in
+    collectAllKeys' targetKeyCount
+      (CollectionState.Set.fromList
+         [
+           {
+             points =
+               PointOfInterestSet.fromList
+                 [ Start 1; Start 2; Start 3; Start 4 ];
+             distance = 0;
+             collectedKeys = KeySet.empty;
+           };
+         ])
+      (CollectionState.Map.fromList
+         [
+           ( {
+               points =
+                 PointOfInterestSet.fromList
+                   [ Start 1; Start 2; Start 3; Start 4 ];
+               collectedKeys = KeySet.empty;
+               distance = 0;
+             },
+             0 );
+         ])
+      (nextKeysForMap map)
 end
 
 let input = InputLoader.loadDay 18
 
-let _ =
-  input |> StackSafeFuture.tap (Maze.fromString >> Maze.collectAllKeys >> Js.log)
+let _ = input |> StackSafeFuture.tap (Maze.collectAllKeys >> Js.log)
+
+let _ = input |> StackSafeFuture.tap (Maze.collectAllKeysFourRobots >> Js.log)
