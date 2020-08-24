@@ -2,6 +2,7 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
+var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_Map = require("relude/src/Relude_Map.bs.js");
@@ -86,7 +87,7 @@ function addCoordinates(list) {
       return /* [] */0;
     }
   };
-  return Curry._1(Relude_List.flatten, loopY(list, 0));
+  return Belt_List.flatten(loopY(list, 0));
 }
 
 function output(toString, $$default, map) {

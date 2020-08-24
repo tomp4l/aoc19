@@ -34,7 +34,7 @@ let addCoordinates list =
   let rec loopY l y =
     match l with xs :: rest -> loopX xs y 0 :: loopY rest (y + 1) | [] -> []
   in
-  Relude.List.flatten (loopY list 0)
+  Belt.List.flatten (loopY list 0)
 
 let output toString default map =
   let points = CoordMap.keys map in
