@@ -2,6 +2,7 @@
 'use strict';
 
 var Curry = require("bs-platform/lib/js/curry.js");
+var Relude_Int = require("relude/src/Relude_Int.bs.js");
 var Relude_Set = require("relude/src/Relude_Set.bs.js");
 var Coord$Aoc19 = require("./lib/Coord.bs.js");
 var Relude_List = require("relude/src/Relude_List.bs.js");
@@ -9,8 +10,9 @@ var Relude_Option = require("relude/src/Relude_Option.bs.js");
 var Relude_String = require("relude/src/Relude_String.bs.js");
 var InputLoader$Aoc19 = require("./lib/InputLoader.bs.js");
 var StackSafeFuture$Aoc19 = require("./lib/StackSafeFuture.bs.js");
+var Relude_List_Specializations = require("relude/src/list/Relude_List_Specializations.bs.js");
 
-var Points = {};
+var SquareWithNeighbours = {};
 
 function compare(param, param$1) {
   var s = Curry._2(Relude_String.Ord.compare, param[0], param$1[0]);
@@ -147,7 +149,7 @@ function findPortals(charMap) {
   };
 }
 
-function createMap(charMap) {
+function createMap(width, height, charMap) {
   var portals = findPortals(charMap);
   var loopMapWithPortals = function (_param, _remaining, _map) {
     while(true) {
@@ -160,14 +162,29 @@ function createMap(charMap) {
         return map;
       }
       var c = p[1];
+      var y = c[1];
+      var x = c[0];
+      var outer = Relude_Option.getOrThrow(Curry._1(Relude_List_Specializations.Int.min, {
+                hd: x,
+                tl: {
+                  hd: y,
+                  tl: {
+                    hd: width - x | 0,
+                    tl: {
+                      hd: height - y | 0,
+                      tl: /* [] */0
+                    }
+                  }
+                }
+              })) < 5;
       var next = p[0] === param[0] ? Curry._3(Coord$Aoc19.CoordMap.set, c, {
-              square: /* Floor */2,
+              square: outer ? /* OuterPortal */4 : /* InnerPortal */3,
               neighbours: {
                 hd: previousCoord,
                 tl: /* [] */0
               }
             }, Curry._3(Coord$Aoc19.CoordMap.set, previousCoord, {
-                  square: /* Floor */2,
+                  square: outer ? /* InnerPortal */3 : /* OuterPortal */4,
                   neighbours: {
                     hd: c,
                     tl: /* [] */0
@@ -276,19 +293,25 @@ function createMap(charMap) {
 }
 
 function fromString(s) {
-  return createMap(Curry._1(Coord$Aoc19.CoordMap.fromList, Coord$Aoc19.addCoordinates(Relude_List.map(function (param) {
-                            return Relude_String.splitAsList("", param);
-                          })(Relude_String.splitAsList("\n", s)))));
+  var split = Relude_List.map(function (param) {
+          return Relude_String.splitAsList("", param);
+        })(Relude_String.splitAsList("\n", s));
+  var width = Relude_Option.getOrElse(0, Relude_Option.map(Relude_List.length, Relude_List.head(split)));
+  var height = Curry._1(Relude_List.length, split);
+  return createMap(width, height, Curry._1(Coord$Aoc19.CoordMap.fromList, Coord$Aoc19.addCoordinates(split)));
+}
+
+function getStart(map) {
+  return Relude_Option.getOrThrow(Curry._2(Coord$Aoc19.CoordMap.find, (function (param, param$1) {
+                      return param$1.square === /* Start */0;
+                    }), map))[0];
 }
 
 function traverse(map) {
-  var match = Relude_Option.getOrThrow(Curry._2(Coord$Aoc19.CoordMap.find, (function (param, param$1) {
-              return param$1.square === /* Start */0;
-            }), map));
   var _visited = Coord$Aoc19.CoordSet.empty;
   var _remaining = {
     hd: [
-      match[0],
+      getStart(map),
       0
     ],
     tl: /* [] */0
@@ -300,12 +323,16 @@ function traverse(map) {
       return -1;
     }
     var others = remaining.tl;
-    var match$1 = remaining.hd;
-    var distance = match$1[1];
-    var next = match$1[0];
-    var match$2 = Curry._2(Coord$Aoc19.CoordMap.get, next, map);
-    if (match$2 !== undefined) {
-      if (match$2.square === 1) {
+    var match = remaining.hd;
+    var distance = match[1];
+    var next = match[0];
+    var match$1 = Curry._2(Coord$Aoc19.CoordMap.get, next, map);
+    if (Curry._2(Coord$Aoc19.CoordSet.contains, next, visited)) {
+      _remaining = others;
+      continue ;
+    }
+    if (match$1 !== undefined) {
+      if (match$1.square === 1) {
         return distance;
       }
       _remaining = Relude_List.concat(others, Relude_List.map((function(distance){
@@ -315,11 +342,7 @@ function traverse(map) {
                           distance + 1 | 0
                         ];
                 }
-                }(distance)))(Relude_List.filterNot((function(visited){
-                    return function (v) {
-                      return Curry._2(Coord$Aoc19.CoordSet.contains, v, visited);
-                    }
-                    }(visited)))(match$2.neighbours)));
+                }(distance)))(match$1.neighbours));
       _visited = Curry._2(Coord$Aoc19.CoordSet.add, next, visited);
       continue ;
     }
@@ -329,12 +352,80 @@ function traverse(map) {
   };
 }
 
+function traverseRecursive(map) {
+  var _visitedPerLevel = Curry._1(Relude_Int.$$Map.make, undefined);
+  var _remaining = {
+    hd: [
+      getStart(map),
+      0,
+      1
+    ],
+    tl: /* [] */0
+  };
+  while(true) {
+    var remaining = _remaining;
+    var visitedPerLevel = _visitedPerLevel;
+    if (!remaining) {
+      return -1;
+    }
+    var others = remaining.tl;
+    var match = remaining.hd;
+    var level = match[2];
+    var distance = match[1];
+    var next = match[0];
+    var visited = Curry._3(Relude_Int.$$Map.getOrElse, level, Coord$Aoc19.CoordSet.empty, visitedPerLevel);
+    var addedToVisitedPerLevel = Curry._3(Relude_Int.$$Map.set, level, Curry._2(Coord$Aoc19.CoordSet.add, next, visited), visitedPerLevel);
+    var match$1 = Curry._2(Coord$Aoc19.CoordMap.get, next, map);
+    if (Curry._2(Coord$Aoc19.CoordSet.contains, next, visited)) {
+      _remaining = others;
+      continue ;
+    }
+    if (match$1 !== undefined) {
+      var square = match$1.square;
+      if (square !== 1) {
+        if (square >= 4 && level === 1) {
+          _remaining = others;
+          _visitedPerLevel = addedToVisitedPerLevel;
+          continue ;
+        }
+        
+      } else if (level === 1) {
+        return distance;
+      }
+      var isHop = function (param, param$1) {
+        return (Curry._1(Relude_Int.abs, param[0] - param$1[0] | 0) + Curry._1(Relude_Int.abs, param[1] - param$1[1] | 0) | 0) > 1;
+      };
+      var newNeighbors = Relude_List.map((function(next,distance,level,square){
+            return function (n) {
+              return [
+                      n,
+                      distance + 1 | 0,
+                      square !== 3 ? (
+                          square >= 4 && isHop(next, n) ? level - 1 | 0 : level
+                        ) : (
+                          isHop(next, n) ? level + 1 | 0 : level
+                        )
+                    ];
+            }
+            }(next,distance,level,square)))(match$1.neighbours);
+      _remaining = Relude_List.concat(others, newNeighbors);
+      _visitedPerLevel = addedToVisitedPerLevel;
+      continue ;
+    }
+    _remaining = others;
+    _visitedPerLevel = addedToVisitedPerLevel;
+    continue ;
+  };
+}
+
 var Maze = {
   isPortal: isPortal,
   findPortals: findPortals,
   createMap: createMap,
   fromString: fromString,
-  traverse: traverse
+  getStart: getStart,
+  traverse: traverse,
+  traverseRecursive: traverseRecursive
 };
 
 var input = InputLoader$Aoc19.loadDay(20);
@@ -344,7 +435,12 @@ StackSafeFuture$Aoc19.tap(function (s) {
         
       })(input);
 
-exports.Points = Points;
+StackSafeFuture$Aoc19.tap(function (s) {
+        console.log(traverseRecursive(fromString(s)));
+        
+      })(input);
+
+exports.SquareWithNeighbours = SquareWithNeighbours;
 exports.StringWithCoords = StringWithCoords;
 exports.Maze = Maze;
 exports.input = input;

@@ -1,5 +1,5 @@
-module Points = struct
-  type square = Start | End | Floor
+module SquareWithNeighbours = struct
+  type square = Start | End | Floor | InnerPortal | OuterPortal
 
   type t = { square : square; neighbours : Coord.t list }
 end
@@ -56,18 +56,30 @@ module Maze = struct
     in
     findPortals' (0, 0) StringWithCoords.Set.empty
 
-  let createMap charMap =
+  let createMap width height charMap =
     let portals = findPortals charMap in
     let rec loopMapWithPortals (previousVal, previousCoord) remaining map =
       match StringWithCoords.Set.minimum remaining with
-      | Some ((v, c) as p) ->
+      | Some ((v, ((x, y) as c)) as p) ->
+          let outer =
+            Relude.List.Int.min [ x; y; width - x; height - y ]
+            |> Relude.Option.getOrThrow < 5
+          in
           let next =
             if v == previousVal then
               Coord.CoordMap.set previousCoord
-                Points.{ square = Floor; neighbours = [ c ] }
+                SquareWithNeighbours.
+                  {
+                    square = (if outer then InnerPortal else OuterPortal);
+                    neighbours = [ c ];
+                  }
                 map
               |> Coord.CoordMap.set c
-                   Points.{ square = Floor; neighbours = [ previousCoord ] }
+                   SquareWithNeighbours.
+                     {
+                       square = (if outer then OuterPortal else InnerPortal);
+                       neighbours = [ previousCoord ];
+                     }
             else map
           in
           loopMapWithPortals p (StringWithCoords.Set.remove p remaining) next
@@ -76,7 +88,8 @@ module Maze = struct
     let addCoordinateIfExists (x, y) points =
       match Coord.CoordMap.get (x, y) charMap with
       | Some "." ->
-          Points.{ points with neighbours = (x, y) :: points.neighbours }
+          SquareWithNeighbours.
+            { points with neighbours = (x, y) :: points.neighbours }
       | _ -> points
     in
     let rec loopNeighbours ((x, y) as c) map =
@@ -86,7 +99,7 @@ module Maze = struct
           let points =
             Coord.CoordMap.get c map
             |> Relude.Option.getOrElse
-                 Points.{ square = Floor; neighbours = [] }
+                 SquareWithNeighbours.{ square = Floor; neighbours = [] }
             |> addCoordinateIfExists (x + 1, y)
             |> addCoordinateIfExists (x - 1, y)
             |> addCoordinateIfExists (x, y + 1)
@@ -102,8 +115,10 @@ module Maze = struct
       with
       | Some ("AA", min), Some ("ZZ", max) ->
           Coord.CoordMap.make ()
-          |> Coord.CoordMap.set min Points.{ square = Start; neighbours = [] }
-          |> Coord.CoordMap.set max Points.{ square = End; neighbours = [] }
+          |> Coord.CoordMap.set min
+               SquareWithNeighbours.{ square = Start; neighbours = [] }
+          |> Coord.CoordMap.set max
+               SquareWithNeighbours.{ square = End; neighbours = [] }
           |> loopMapWithPortals ("AA", min)
                (StringWithCoords.Set.remove ("AA", min) portals)
       | _ -> Coord.CoordMap.make ()
@@ -111,36 +126,89 @@ module Maze = struct
     loopNeighbours (0, 0) startMap
 
   let fromString s =
-    s
-    |> Relude.String.splitAsList ~delimiter:"\n"
-    |> Relude.List.map (Relude.String.splitAsList ~delimiter:"")
-    |> Coord.addCoordinates |> Coord.CoordMap.fromList |> createMap
+    let split =
+      s
+      |> Relude.String.splitAsList ~delimiter:"\n"
+      |> Relude.List.map (Relude.String.splitAsList ~delimiter:"")
+    in
+    let width =
+      Relude.List.head split
+      |> Relude.Option.map Relude.List.length
+      |> Relude.Option.getOrElse 0
+    in
+    let height = Relude.List.length split in
+    split |> Coord.addCoordinates |> Coord.CoordMap.fromList
+    |> createMap width height
+
+  let getStart map =
+    match
+      Coord.CoordMap.find
+        (fun _ SquareWithNeighbours.{ square; _ } ->
+          square = SquareWithNeighbours.Start)
+        map
+      |> Relude.Option.getOrThrow
+    with
+    | start, _ -> start
 
   let traverse map =
     let rec traverse visited remaining =
       match remaining with
       | (next, distance) :: others -> (
           match Coord.CoordMap.get next map with
-          | Some Points.{ square = End; _ } -> distance
-          | Some Points.{ neighbours; _ } ->
+          | _ when Coord.CoordSet.contains next visited ->
+              traverse visited others
+          | Some SquareWithNeighbours.{ square = End; _ } -> distance
+          | Some SquareWithNeighbours.{ neighbours; _ } ->
               traverse
                 (Coord.CoordSet.add next visited)
                 (Relude.List.concat others
-                   (Relude.List.map
-                      (fun n -> (n, distance + 1))
-                      ( neighbours
-                      |> Relude.List.filterNot (fun v ->
-                             Coord.CoordSet.contains v visited) )))
+                   (Relude.List.map (fun n -> (n, distance + 1)) neighbours))
           | None -> traverse (Coord.CoordSet.add next visited) others )
       | [] -> -1
     in
-    let start, _ =
-      Coord.CoordMap.find
-        (fun _ Points.{ square; _ } -> square = Points.Start)
-        map
-      |> Relude.Option.getOrThrow
+    traverse Coord.CoordSet.empty [ (getStart map, 0) ]
+
+  let traverseRecursive map =
+    let rec traverse visitedPerLevel remaining =
+      match remaining with
+      | (next, distance, level) :: others -> (
+          let visited =
+            Relude.Int.Map.getOrElse level Coord.CoordSet.empty visitedPerLevel
+          in
+          let addedToVisitedPerLevel =
+            Relude.Int.Map.set level
+              (Coord.CoordSet.add next visited)
+              visitedPerLevel
+          in
+          match Coord.CoordMap.get next map with
+          | _ when Coord.CoordSet.contains next visited ->
+              traverse visitedPerLevel others
+          | Some SquareWithNeighbours.{ square = End; _ } when level = 1 ->
+              distance
+          | Some SquareWithNeighbours.{ square = OuterPortal; _ } when level = 1
+            ->
+              traverse addedToVisitedPerLevel others
+          | Some SquareWithNeighbours.{ neighbours; square } ->
+              let isHop (x1, y1) (x2, y2) =
+                Relude.Int.abs (x1 - x2) + Relude.Int.abs (y1 - y2) > 1
+              in
+              let newNeighbors =
+                Relude.List.map
+                  (fun n ->
+                    ( n,
+                      distance + 1,
+                      match square with
+                      | OuterPortal -> if isHop next n then level - 1 else level
+                      | InnerPortal -> if isHop next n then level + 1 else level
+                      | _ -> level ))
+                  neighbours
+              in
+              traverse addedToVisitedPerLevel
+                (Relude.List.concat others newNeighbors)
+          | None -> traverse addedToVisitedPerLevel others )
+      | [] -> -1
     in
-    traverse Coord.CoordSet.empty [ (start, 0) ]
+    traverse (Relude.Int.Map.make ()) [ (getStart map, 0, 1) ]
 end
 
 let input = InputLoader.loadDay 20
@@ -148,3 +216,8 @@ let input = InputLoader.loadDay 20
 let _ =
   input
   |> StackSafeFuture.tap (fun s -> Maze.fromString s |> Maze.traverse |> Js.log)
+
+let _ =
+  input
+  |> StackSafeFuture.tap (fun s ->
+         Maze.fromString s |> Maze.traverseRecursive |> Js.log)
