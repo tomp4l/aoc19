@@ -16,9 +16,9 @@ let () =
   describe "pass" (fun () ->
       let open Expect in
       let number = [ 1; 2; 3; 4; 5; 6; 7; 8 ] in
-      test "pass 1 size 8" (fun () -> expect (pass 8 1 number) |> toEqual 4);
-      test "pass 2 size 8" (fun () -> expect (pass 8 2 number) |> toEqual 8);
-      test "pass 3 size 8" (fun () -> expect (pass 8 3 number) |> toEqual 2);
+      test "pass 1 size 8" (fun () -> expect (Day16.pass 8 1 number) |> toEqual 4);
+      test "pass 2 size 8" (fun () -> expect (Day16.pass 8 2 number) |> toEqual 8);
+      test "pass 3 size 8" (fun () -> expect (Day16.pass 8 3 number) |> toEqual 2);
 
       ());
 
